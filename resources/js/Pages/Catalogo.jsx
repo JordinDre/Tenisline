@@ -1,5 +1,6 @@
 import Logo from '@/Components/tienda/Logo';
 import ProductoCard from '@/Components/tienda/ProductoCard';
+import { PastillasTienda } from '@/Components/tienda/SelectorTienda';
 import { Button } from '@/Components/ui/button';
 import {
     DropdownMenu,
@@ -10,10 +11,11 @@ import {
 } from '@/Components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Switch } from '@/Components/ui/switch';
+import { elegirTienda } from '@/Contexts/SucursalContext';
 import Layout from '@/Layouts/Layout';
 import { capitalizar } from '@/lib/tienda';
 import { cn } from '@/lib/utils';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { ArrowUpDown, ChevronLeft, ChevronRight, SlidersHorizontal, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -53,7 +55,7 @@ function Grupo({ titulo, children }) {
     );
 }
 
-function Filtros({ f, set, marcas, categorias, bodegas, tallas, puedeVerMarchamo }) {
+function Filtros({ f, set, marcas, categorias, tallas, puedeVerMarchamo }) {
     const [precio, setPrecio] = useState({ min: f.precioMin ?? '', max: f.precioMax ?? '' });
     useEffect(() => setPrecio({ min: f.precioMin ?? '', max: f.precioMax ?? '' }), [f.precioMin, f.precioMax]);
 
@@ -120,17 +122,10 @@ function Filtros({ f, set, marcas, categorias, bodegas, tallas, puedeVerMarchamo
                 </form>
             </Grupo>
 
-            {bodegas.length > 0 && (
-                <Grupo titulo="Disponible en">
-                    <div className="flex flex-wrap gap-2">
-                        {bodegas.map((b) => (
-                            <button key={b.id} onClick={() => set({ bodega: mismo(f.bodega, b.id) ? null : b.id })} className={pastilla(mismo(f.bodega, b.id))}>
-                                {b.bodega}
-                            </button>
-                        ))}
-                    </div>
-                </Grupo>
-            )}
+            {/* Filtro global de tienda: se guarda y aplica en todo el sitio */}
+            <Grupo titulo="Tienda">
+                <PastillasTienda />
+            </Grupo>
 
             <Grupo titulo="Ofertas">
                 <label className="flex cursor-pointer items-center justify-between gap-4">
@@ -156,6 +151,7 @@ export default function Catalogo({ productos, filtros = {}, marcas = [], categor
     const [panel, setPanel] = useState(false);
     const [cargando, setCargando] = useState(false);
     const f = filtros;
+    const tienda = usePage().props.tienda?.seleccionada;
 
     useEffect(() => {
         const inicio = router.on('start', () => setCargando(true));
@@ -176,6 +172,7 @@ export default function Catalogo({ productos, filtros = {}, marcas = [], categor
         ...(f.tallas ?? []).map((t) => ({ k: 'tallas', v: t, t: `Talla ${t}` })),
         (f.precioMin || f.precioMax) && { k: 'precio', t: RANGOS.find((r) => mismo(r.min, f.precioMin) && mismo(r.max, f.precioMax))?.label ?? `Q${f.precioMin || 0} – Q${f.precioMax || '∞'}` },
         f.bodega && { k: 'bodega', t: bodegas.find((b) => mismo(b.id, f.bodega))?.bodega ?? 'Tienda' },
+        !f.bodega && tienda && { k: 'tienda', t: `Tienda: ${capitalizar(tienda)}` },
         f.ofertas && { k: 'ofertas', t: 'En oferta' },
         f.marchamo && { k: 'marchamo', t: `Marchamo ${f.marchamo}` },
     ].filter(Boolean);
@@ -183,6 +180,7 @@ export default function Catalogo({ productos, filtros = {}, marcas = [], categor
     const quitarChip = (c) => {
         if (c.k === 'tallas') return aplicar({ tallas: f.tallas.filter((t) => t !== c.v) });
         if (c.k === 'precio') return aplicar({ precioMin: null, precioMax: null });
+        if (c.k === 'tienda') return elegirTienda(null);
         aplicar({ [c.k]: null });
     };
 

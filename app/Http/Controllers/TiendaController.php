@@ -45,7 +45,9 @@ class TiendaController extends Controller
             ->filter(fn ($p) => $p['imagen'] || $p['titulo'])
             ->values();
 
-        $destacados = CatalogoTienda::modelos(CatalogoTienda::consulta(['con_imagen' => true]), 'recientes', 0, 8);
+        // Filtro global de tienda: solo modelos con existencia en la sucursal elegida
+        $sucursal = ['sucursal' => CatalogoTienda::sucursal()];
+        $destacados = CatalogoTienda::modelos(CatalogoTienda::consulta([...$sucursal, 'con_imagen' => true]), 'recientes', 0, 8);
 
         return Inertia::render('Inicio', [
             'seo' => Seo::make(
@@ -60,8 +62,8 @@ class TiendaController extends Controller
             'promociones' => $promociones,
             'categorias' => CatalogoTienda::categorias(),
             'marcas' => CatalogoTienda::marcas(),
-            'ofertas' => CatalogoTienda::modelos(CatalogoTienda::consulta(['ofertas' => true]), 'recientes', 0, 12),
-            'novedades' => CatalogoTienda::modelos(CatalogoTienda::consulta(), 'recientes', 0, 12),
+            'ofertas' => CatalogoTienda::modelos(CatalogoTienda::consulta([...$sucursal, 'ofertas' => true]), 'recientes', 0, 12),
+            'novedades' => CatalogoTienda::modelos(CatalogoTienda::consulta($sucursal), 'recientes', 0, 12),
             // Modelos con foto real, para la portada y la sección destacada
             'destacados' => $destacados,
         ]);
@@ -150,7 +152,8 @@ class TiendaController extends Controller
                 'Catálogo de tenis '.($marca ? $marca.' ' : '').($etiqueta ? 'para '.strtolower($etiqueta).' ' : '').'en Zacapa, Chiquimula y Esquipulas. Modelos originales sin caja a precios que no encuentras en otro lado.',
                 null, $canonical, 'website', $soloCategoria,
             ),
-            'productos' => CatalogoTienda::modelos(CatalogoTienda::consulta($filtros), $orden),
+            // La tienda del filtro global aplica salvo que el enlace traiga una bodega
+            'productos' => CatalogoTienda::modelos(CatalogoTienda::consulta([...$filtros, 'sucursal' => empty($filtros['bodega']) ? CatalogoTienda::sucursal() : null]), $orden),
             'filtros' => [...$filtros, 'orden' => $orden, 'tallas' => array_values((array) ($filtros['tallas'] ?? []))],
             'marcas' => CatalogoTienda::marcas(),
             'categorias' => CatalogoTienda::categorias(),
