@@ -1,6 +1,7 @@
 import BotonTema from '@/Components/tienda/BotonTema';
 import Logo from '@/Components/tienda/Logo';
 import Redes from '@/Components/tienda/Redes';
+import SelectorTienda, { PastillasTienda } from '@/Components/tienda/SelectorTienda';
 import { Button } from '@/Components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/Components/ui/sheet';
 import { useCarrito } from '@/Contexts/CarritoContext';
@@ -121,6 +122,8 @@ export default function Header() {
                                 ))}
                             </nav>
                             <div className="mt-auto border-t p-5">
+                                <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-neutral-500">Ver productos de</p>
+                                <PastillasTienda className="mb-5" />
                                 <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-neutral-500">Escríbenos</p>
                                 <div className="grid grid-cols-3 gap-2">
                                     {sucursales.map((s) => (
@@ -160,6 +163,7 @@ export default function Header() {
                         <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full md:hidden" onClick={() => setBuscando(true)} aria-label="Buscar">
                             <Search className="h-5 w-5" />
                         </Button>
+                        <SelectorTienda />
                         <BotonTema />
                         <Button variant="ghost" size="icon" className="group/bolsa relative h-10 w-10 rounded-full" onClick={() => setAbierto(true)} aria-label="Abrir carrito">
                             <ShoppingBag className="h-[22px] w-[22px] transition-transform duration-500 group-hover/bolsa:-rotate-6 group-hover/bolsa:scale-110" strokeWidth={1.9} />

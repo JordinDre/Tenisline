@@ -23,6 +23,14 @@ class CatalogoTienda
 
     public const SUCURSALES = ['zacapa', 'chiquimula', 'esquipulas'];
 
+    /** Tienda elegida en el filtro global (cookie), o null si se ven todas. */
+    public static function sucursal(): ?string
+    {
+        $valor = strtolower(trim((string) request()->cookie('tienda_sucursal')));
+
+        return in_array($valor, self::SUCURSALES) ? $valor : null;
+    }
+
     public static function esAdmin(): bool
     {
         $user = Auth::user();
@@ -41,7 +49,9 @@ class CatalogoTienda
                     if (! $esAdmin) {
                         $b->whereNotIn('bodega', self::BODEGAS_OCULTAS);
                     }
-                    if (! empty($f['bodega'])) {
+                    if (! empty($f['sucursal'])) {
+                        $b->whereRaw('LOWER(bodega) LIKE ?', ['%'.strtolower($f['sucursal']).'%']);
+                    } elseif (! empty($f['bodega'])) {
                         $bodega = Bodega::with('municipio')->find($f['bodega']);
                         $municipio = strtolower($bodega?->municipio?->municipio ?? '');
                         $municipio

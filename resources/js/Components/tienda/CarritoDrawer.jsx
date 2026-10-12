@@ -3,10 +3,11 @@ import MuestraColor from '@/Components/tienda/MuestraColor';
 import { Button } from '@/Components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { useCarrito } from '@/Contexts/CarritoContext';
+import { useSucursal } from '@/Contexts/SucursalContext';
 import { capitalizar, enlaceWhatsApp, precioFinal, quetzales } from '@/lib/tienda';
 import { cn } from '@/lib/utils';
-import { Link, usePage } from '@inertiajs/react';
-import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
+import { Link } from '@inertiajs/react';
+import { MapPin, ShoppingBag, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 export const IconoWhatsApp = ({ className }) => (
@@ -17,12 +18,14 @@ export const IconoWhatsApp = ({ className }) => (
 
 export default function CarritoDrawer() {
     const { items, abierto, setAbierto, cambiarCantidad, quitar, vaciar, cantidad } = useCarrito();
-    const sucursales = usePage().props.tienda?.sucursales ?? [];
-    const [sucursal, setSucursal] = useState(0);
+    const { sucursales, cercana, preferida } = useSucursal();
+    // Por defecto se escribe a la tienda elegida o a la más cercana; el cliente puede cambiarla
+    const [elegida, setElegida] = useState(null);
+    const sucursal = elegida ?? preferida?.nombre;
     const total = items.reduce((s, i) => s + precioFinal(i) * i.cantidad, 0);
 
     const enviar = () => {
-        const s = sucursales[sucursal];
+        const s = sucursales.find((x) => x.nombre === sucursal);
         if (s && items.length) window.open(enlaceWhatsApp(s.telefono, items, s.nombre), '_blank', 'noopener');
     };
 
@@ -79,13 +82,18 @@ export default function CarritoDrawer() {
                             <div>
                                 <p className="mb-2 text-sm font-semibold">¿A qué tienda le escribimos?</p>
                                 <div className="grid grid-cols-3 gap-2">
-                                    {sucursales.map((s, n) => (
-                                        <button key={s.nombre} onClick={() => setSucursal(n)}
-                                            className={cn('h-10 rounded-xl border text-sm font-semibold transition-colors', sucursal === n ? 'border-ink bg-ink text-white' : 'border-neutral-200 bg-white hover:border-neutral-400')}>
+                                    {sucursales.map((s) => (
+                                        <button key={s.nombre} onClick={() => setElegida(s.nombre)}
+                                            className={cn('h-10 rounded-xl border text-sm font-semibold transition-colors', sucursal === s.nombre ? 'border-ink bg-ink text-white' : 'border-neutral-200 bg-white hover:border-neutral-400')}>
                                             {s.nombre}
                                         </button>
                                     ))}
                                 </div>
+                                {cercana && (
+                                    <p className="mt-2 flex items-center gap-1 text-xs text-neutral-500">
+                                        <MapPin className="h-3.5 w-3.5" /> La más cercana a ti es <b className="text-ink">{cercana.nombre}</b> ({Math.round(cercana.km)} km)
+                                    </p>
+                                )}
                             </div>
                             <div className="flex items-center justify-between">
                                 <span className="text-neutral-600">Total aproximado</span>

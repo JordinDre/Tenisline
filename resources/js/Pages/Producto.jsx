@@ -5,10 +5,11 @@ import ProductoCard from '@/Components/tienda/ProductoCard';
 import { Button } from '@/Components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/Components/ui/carousel';
 import { useCarrito } from '@/Contexts/CarritoContext';
+import { useSucursal } from '@/Contexts/SucursalContext';
 import Layout from '@/Layouts/Layout';
 import { capitalizar, descuento, enlaceWhatsApp, quetzales } from '@/lib/tienda';
 import { cn } from '@/lib/utils';
-import { Link, usePage } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { Check, MapPin, MessageCircle, ShoppingBag, Store, Tag } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -16,7 +17,7 @@ const contenedor = 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-8';
 
 function Contenido({ producto, variantes, mostrarExistencia, relacionados }) {
     const { agregar, items } = useCarrito();
-    const sucursales = usePage().props.tienda?.sucursales ?? [];
+    const tienda = useSucursal().preferida;
     const inicial = variantes.find((v) => v.slug === producto.slug) ?? variantes[0];
     const [seleccion, setSeleccion] = useState(inicial?.id ?? null);
     const [foto, setFoto] = useState(0);
@@ -170,11 +171,11 @@ function Contenido({ producto, variantes, mostrarExistencia, relacionados }) {
                                 className={cn('h-14 rounded-full text-base font-semibold transition-colors', agregado || enCarrito ? 'bg-emerald-600 hover:bg-emerald-600 disabled:opacity-100' : 'bg-ink hover:bg-brand')}>
                                 {agregado || enCarrito ? <><Check className="h-5 w-5" /> {agregado ? 'Agregado' : 'En tu carrito'}</> : <><ShoppingBag className="h-5 w-5" /> Agregar al carrito</>}
                             </Button>
-                            {sucursales[0] && (
+                            {tienda && (
                                 <Button asChild variant="outline" className="h-14 rounded-full border-2 border-[#25D366] text-base font-semibold text-[#128C7E] hover:bg-[#25D366] hover:text-white">
-                                    <a href={item ? enlaceWhatsApp(sucursales[0].telefono, [{ ...item, cantidad: 1 }], sucursales[0].nombre) : `https://wa.me/${sucursales[0].telefono}`}
+                                    <a href={item ? enlaceWhatsApp(tienda.telefono, [{ ...item, cantidad: 1 }], tienda.nombre) : `https://wa.me/${tienda.telefono}`}
                                         target="_blank" rel="noopener noreferrer">
-                                        <IconoWhatsApp className="h-5 w-5" /> Preguntar
+                                        <IconoWhatsApp className="h-5 w-5" /> Preguntar a {tienda.nombre}
                                     </a>
                                 </Button>
                             )}

@@ -5,11 +5,12 @@ return [
     'nombre' => 'Tenisline',
     'eslogan' => 'No box, sí precio',
 
-    // Sucursales a las que se puede enviar el pedido por WhatsApp
+    // Sucursales a las que se puede enviar el pedido por WhatsApp.
+    // lat/lng: ubicación aproximada para sugerir la tienda más cercana al cliente.
     'sucursales' => [
-        ['nombre' => 'Zacapa', 'telefono' => '50239900606', 'direccion' => env('DIRECCION', '')],
-        ['nombre' => 'Chiquimula', 'telefono' => '50239910917', 'direccion' => env('DIRECCION2', '')],
-        ['nombre' => 'Esquipulas', 'telefono' => '50239999952', 'direccion' => env('DIRECCION3', '')],
+        ['nombre' => 'Zacapa', 'telefono' => '50239900606', 'direccion' => env('DIRECCION', ''), 'lat' => 14.9722, 'lng' => -89.5306],
+        ['nombre' => 'Chiquimula', 'telefono' => '50239910917', 'direccion' => env('DIRECCION2', ''), 'lat' => 14.7998, 'lng' => -89.5442],
+        ['nombre' => 'Esquipulas', 'telefono' => '50239999952', 'direccion' => env('DIRECCION3', ''), 'lat' => 14.5627, 'lng' => -89.3503],
     ],
 
     // Redes sociales (footer, menú y datos estructurados para Google)
