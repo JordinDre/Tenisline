@@ -29,6 +29,5 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->encryptCookies(except: ['tienda_sucursal']);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        // Tienda elegida en el filtro global del sitio (la escribe el navegador)
-        $middleware->encryptCookies(except: ['tienda_sucursal']);
+        //
     })->create();
