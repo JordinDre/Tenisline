@@ -11,7 +11,7 @@ import Autoplay from 'embla-carousel-autoplay';
 import { ArrowRight, ArrowUpRight, Baby, BadgeCheck, Clock, Footprints, Mars, MessageCircle, PackagePlus, Percent, Search, ShoppingBag, Store, Tag, Venus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-const contenedor = 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-8';
+const contenedor = 'mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 xl:px-12';
 
 /* ---------- Portada ---------- */
 

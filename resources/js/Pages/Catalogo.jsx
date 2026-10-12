@@ -19,7 +19,7 @@ import { Link, router, usePage } from '@inertiajs/react';
 import { ArrowUpDown, ChevronLeft, ChevronRight, SlidersHorizontal, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-const contenedor = 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-8';
+const contenedor = 'mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 xl:px-12';
 
 const ORDENES = {
     recientes: 'Más recientes',
