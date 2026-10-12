@@ -12,8 +12,13 @@ export default function BotonTema({ className = '' }) {
     const [oscuro, setOscuro] = useState(false);
 
     useEffect(() => {
-        setOscuro(document.documentElement.classList.contains('dark'));
-        aplicar(document.documentElement.classList.contains('dark'));
+        // Se lee de localStorage: al navegar entre páginas el desmontaje anterior ya quitó la clase 'dark'.
+        let guardado = false;
+        try {
+            guardado = localStorage.getItem('tema') === 'oscuro';
+        } catch {}
+        setOscuro(guardado);
+        aplicar(guardado);
         return () => document.documentElement.classList.remove('dark'); // las páginas internas no usan modo oscuro
     }, []);
 
