@@ -9,12 +9,12 @@ export default function Marcas({ marcas = [] }) {
         <Layout>
             <section className="relative overflow-hidden border-b bg-neutral-50">
                 <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-brand/10 blur-3xl" />
-                <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+                <div className="relative mx-auto max-w-screen-2xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 xl:px-12">
                     <h1 className="animate-fade-up font-display text-4xl uppercase leading-none sm:text-5xl">Marcas</h1>
                     <p className="mt-3 text-neutral-500">Las mejores marcas en un solo lugar.</p>
                 </div>
             </section>
-            <div className="mx-auto grid max-w-7xl grid-cols-2 gap-4 px-4 py-10 sm:grid-cols-3 sm:px-6 lg:grid-cols-4 lg:px-8">
+            <div className="mx-auto grid max-w-screen-2xl grid-cols-2 gap-4 px-4 py-10 sm:grid-cols-3 sm:px-6 lg:grid-cols-4 lg:px-8 xl:px-12">
                 {marcas.map((m, n) => (
                     <Link key={m.marca} href={`/catalogo?marca=${encodeURIComponent(m.marca)}`}
                         className="group flex animate-fade-up flex-col rounded-3xl bg-white p-5 ring-1 ring-neutral-200 transition-all duration-500 hover:-translate-y-1 hover:ring-ink sm:p-6"

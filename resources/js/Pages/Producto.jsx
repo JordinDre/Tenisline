@@ -13,7 +13,7 @@ import { Link } from '@inertiajs/react';
 import { Check, MapPin, MessageCircle, ShoppingBag, Store, Tag } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-const contenedor = 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-8';
+const contenedor = 'mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 xl:px-12';
 
 function Contenido({ producto, variantes, mostrarExistencia, relacionados }) {
     const { agregar, items } = useCarrito();

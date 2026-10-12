@@ -19,7 +19,7 @@ export default function Footer() {
     return (
         <footer className="relative mt-24 overflow-hidden bg-ink text-neutral-300">
             <div className="pointer-events-none absolute -right-40 -top-40 h-96 w-96 rounded-full bg-brand/20 blur-3xl" />
-            <div className="relative mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 md:grid-cols-2 lg:grid-cols-12 lg:px-8">
+            <div className="relative mx-auto grid max-w-screen-2xl gap-12 px-4 py-16 sm:px-6 md:grid-cols-2 lg:grid-cols-12 lg:px-8 xl:px-12">
                 <div className="lg:col-span-3">
                     <img src="/images/logo-completo-blanco.webp" alt="Tenisline, no box, sí precio" width="977" height="558" loading="lazy" className="h-24 w-auto" />
                     <p className="mt-5 max-w-xs text-sm leading-relaxed text-neutral-400">
@@ -61,7 +61,7 @@ export default function Footer() {
             </div>
 
             <div className="relative border-t border-white/10">
-                <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-6 text-xs text-neutral-500 sm:flex-row sm:px-6 lg:px-8">
+                <div className="mx-auto flex max-w-screen-2xl flex-col items-center justify-between gap-2 px-4 py-6 text-xs text-neutral-500 sm:flex-row sm:px-6 lg:px-8 xl:px-12">
                     <p>© {new Date().getFullYear()} Tenisline. Todos los derechos reservados.</p>
                     <a href="/admin" className="transition-colors hover:text-neutral-300">Acceso colaboradores</a>
                 </div>

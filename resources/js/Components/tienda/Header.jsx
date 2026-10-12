@@ -94,7 +94,7 @@ export default function Header() {
             <Cinta avisos={props.tienda?.avisos} />
 
             <header className={cn('sticky top-0 z-40 border-b bg-white/95 backdrop-blur-md transition-[border-color] duration-500 supports-[backdrop-filter]:bg-white/80', sombra ? 'border-neutral-200 ' : 'border-transparent')}>
-                <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:h-20 lg:px-8">
+                <div className="mx-auto flex h-16 max-w-screen-2xl items-center gap-3 px-4 sm:px-6 lg:h-20 lg:px-8 xl:px-12">
                     <Sheet open={menu} onOpenChange={setMenu}>
                         <SheetTrigger asChild>
                             <Button variant="ghost" size="icon" className="-ml-2 h-10 w-10 rounded-full lg:hidden" aria-label="Abrir menú">
@@ -143,24 +143,24 @@ export default function Header() {
                         <Logo alt="Tenisline" className="h-11 w-auto transition-transform duration-500 hover:scale-105 lg:h-14" />
                     </Link>
 
-                    <nav className="ml-4 hidden items-center gap-0.5 lg:flex xl:ml-8">
+                    <nav className="ml-6 hidden items-center gap-1 lg:flex xl:ml-10">
                         {NAV.map((n) => (
                             <Link key={n.href} href={n.href}
-                                className={cn('rounded-full px-3.5 py-2 text-sm font-semibold transition-colors xl:px-4',
+                                className={cn('inline-flex items-center whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-semibold transition-colors xl:px-4',
                                     n.destacado ? 'text-brand hover:bg-brand-light' : activo(n.href) ? 'bg-ink text-white' : 'text-neutral-700 hover:bg-neutral-100 hover:text-ink')}>
-                                {n.destacado && <n.icono className="mr-1 inline h-4 w-4 -translate-y-px" strokeWidth={2.25} />}
+                                {n.destacado && <n.icono className="mr-1.5 h-4 w-4 shrink-0" strokeWidth={2.25} />}
                                 {n.label}
                             </Link>
                         ))}
                     </nav>
 
-                    <div className="ml-auto flex items-center gap-1">
-                        <form onSubmit={buscar} className="group hidden h-10 items-center rounded-full bg-neutral-100 pl-4 pr-1 ring-brand/30 transition-all focus-within:bg-white focus-within:ring-2 md:flex">
+                    <div className="ml-auto flex items-center gap-1.5 xl:gap-2">
+                        <form onSubmit={buscar} className="group hidden h-10 items-center rounded-full bg-neutral-100 pl-4 pr-1 ring-brand/30 transition-all focus-within:bg-white focus-within:ring-2 xl:flex">
                             <Search className="h-4 w-4 shrink-0 text-neutral-500" />
                             <input value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Buscar modelo, marca o código"
-                                className="h-full w-48 border-0 bg-transparent px-2.5 text-sm placeholder:text-neutral-500 focus:ring-0 xl:w-64" />
+                                className="h-full w-56 border-0 bg-transparent px-2.5 text-sm placeholder:text-neutral-500 focus:ring-0 2xl:w-72" />
                         </form>
-                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full md:hidden" onClick={() => setBuscando(true)} aria-label="Buscar">
+                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full xl:hidden" onClick={() => setBuscando(true)} aria-label="Buscar">
                             <Search className="h-5 w-5" />
                         </Button>
                         <SelectorTienda />
@@ -177,7 +177,7 @@ export default function Header() {
                 </div>
 
                 {buscando && (
-                    <div className="absolute inset-0 z-10 flex animate-in items-center gap-2 bg-white px-4 duration-300 fade-in md:hidden">
+                    <div className="absolute inset-0 z-10 flex animate-in items-center gap-2 bg-white px-4 duration-300 fade-in xl:hidden">
                         <form onSubmit={buscar} className="flex h-11 flex-1 items-center rounded-full bg-neutral-100 px-4">
                             <Search className="h-4 w-4 text-neutral-500" />
                             <input autoFocus value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Buscar modelo, marca o código"
