@@ -121,36 +121,62 @@ class Cierre extends Model
 
     public function getDatosCajaChicaAttribute()
     {
-        $query = CajaChica::with('pagos', 'usuario')
-            ->where('bodega_id', $this->bodega_id);
-
-        if ($this->tieneVentaContado()) {
-            return $query
-                ->where(function ($q) {
-                    $q->whereBetween('created_at', [$this->apertura, $this->cierre ?? now()])
+        return CajaChica::with('pagos', 'usuario')
+            ->where('bodega_id', $this->bodega_id)
+            ->where(function ($q) {
+                $q->whereBetween('created_at', [$this->apertura, $this->cierre ?? now()])
                     ->orWhere('aplicado_en_cierre_id', $this->id);
-                })
-                ->get();
-        }
-        return $query
-            ->whereBetween('created_at', [$this->apertura, $this->cierre ?? now()])
+            })
             ->get();
     }
 
     public function getTotalCajaChicaAttribute()
     {
-        if ($this->tieneVentaContado()) {
-            return CajaChica::where('bodega_id', $this->bodega_id)
-                ->where(function ($q) {
-                    $q->whereBetween('created_at', [$this->apertura, $this->cierre ?? now()])
-                    ->orWhere('aplicado_en_cierre_id', $this->id);
-                })
-                ->with('pagos')
-                ->get()
-                ->sum(fn ($caja) => $caja->pagos->sum('monto'));
+        // Cierre abierto: se muestra lo que se aplicaría al cerrar.
+        if ($this->cierre === null) {
+            return $this->cajasChicasAplicables()->sum(fn ($caja) => $caja->pagos->sum('monto'));
         }
 
-        return 0;
+        return CajaChica::where('aplicado_en_cierre_id', $this->id)
+            ->with('pagos')
+            ->get()
+            ->sum(fn ($caja) => $caja->pagos->sum('monto'));
+    }
+
+    /**
+     * Efectivo recibido en ventas al contado durante el cierre.
+     */
+    public function totalContado(): float
+    {
+        return (float) ($this->getResumenPagosEsperados()['CONTADO'] ?? 0);
+    }
+
+    /**
+     * Cajas chicas pendientes de la bodega que se pueden cubrir con el efectivo
+     * del cierre, de la más antigua a la más reciente. Las que no alcancen
+     * quedan pendientes para el siguiente cierre.
+     */
+    public function cajasChicasAplicables()
+    {
+        $disponible = round($this->totalContado(), 2);
+
+        return CajaChica::with('pagos')
+            ->where('bodega_id', $this->bodega_id)
+            ->where('aplicado', false)
+            ->where('estado', '!=', 'anulada')
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get()
+            ->filter(function ($caja) use (&$disponible) {
+                $monto = round($caja->pagos->sum('monto'), 2);
+                if ($monto > $disponible) {
+                    return false;
+                }
+                $disponible = round($disponible - $monto, 2);
+
+                return true;
+            })
+            ->values();
     }
 
     public function tieneVentaContado(): bool
