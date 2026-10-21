@@ -159,8 +159,9 @@ class CierreResource extends Resource
                     ->action(function (Cierre $record) {
                         DB::transaction(function () use ($record) {
                             $record->update(['cierre' => now()]);
-                            if ($record->tieneVentaContado()) {
-                                CajaChica::where('bodega_id', $record->bodega_id)
+                            $ids = $record->cajasChicasAplicables()->pluck('id');
+                            if ($ids->isNotEmpty()) {
+                                CajaChica::whereIn('id', $ids)
                                     ->where('aplicado', false)
                                     ->update([
                                         'aplicado' => true,
