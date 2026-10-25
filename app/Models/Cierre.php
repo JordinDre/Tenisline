@@ -418,8 +418,10 @@ class Cierre extends Model
                 default      => ucfirst($caja->estado),
             };
 
-            if ($caja->aplicado && $caja->aplicado_en_cierre_id === $this->id) {
-                $estadoLabel = 'Aplicada en este cierre';
+            if ($caja->aplicado && $caja->aplicado_en_cierre_id) {
+                $estadoLabel = $caja->aplicado_en_cierre_id === $this->id
+                    ? 'Aplicada en este cierre'
+                    : "Aplicada en cierre #{$caja->aplicado_en_cierre_id}";
             }
 
             $monto = $caja->pagos->sum('monto');
