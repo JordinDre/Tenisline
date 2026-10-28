@@ -113,9 +113,11 @@ class CatalogoTienda
     /** Agrupa la consulta por modelo y la pagina (o la limita si $limite > 0). */
     public static function modelos(Builder $q, string $orden = 'recientes', int $porPagina = 24, int $limite = 0)
     {
+        // El enlace y el código de la tarjeta salen del mismo producto que pone la foto
+        $conFoto = "(NULLIF(NULLIF(productos.imagenes, '[]'), 'null') IS NOT NULL)";
         $q->select(DB::raw("
-                MIN(productos.id) AS id,
-                MIN(productos.codigo) AS codigo,
+                SUBSTRING_INDEX(GROUP_CONCAT(productos.id ORDER BY {$conFoto} DESC, productos.imagenes DESC, productos.id SEPARATOR ','), ',', 1) AS id,
+                SUBSTRING_INDEX(GROUP_CONCAT(productos.codigo ORDER BY {$conFoto} DESC, productos.imagenes DESC, productos.id SEPARATOR ','), ',', 1) AS codigo,
                 productos.marca_id, productos.descripcion, productos.color, productos.genero,
                 MIN(productos.precio_venta) AS precio,
                 MIN(NULLIF(productos.precio_oferta, 0)) AS precio_oferta,
