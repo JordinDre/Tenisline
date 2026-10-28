@@ -24,7 +24,9 @@ function Contenido({ producto, variantes, mostrarExistencia, relacionados }) {
     const [agregado, setAgregado] = useState(false);
 
     const variante = variantes.find((v) => v.id === seleccion) ?? inicial;
-    const imagenes = producto.imagenes?.length ? producto.imagenes : [null];
+    // Si la talla elegida es otro código con su propia foto, se muestra esa foto
+    const propias = producto.imagenes?.length ? producto.imagenes : [null];
+    const imagenes = variante?.imagen && !propias.includes(variante.imagen) ? [variante.imagen] : propias;
     const pct = descuento(variante);
 
     const item = useMemo(
@@ -39,9 +41,9 @@ function Contenido({ producto, variantes, mostrarExistencia, relacionados }) {
                 descripcion: producto.descripcion,
                 marca: producto.marca,
                 color: producto.color,
-                imagen: producto.imagenes?.[0] ?? null,
+                imagen: imagenes[0],
             },
-        [variante, producto],
+        [variante, producto, imagenes],
     );
 
     const enCarrito = items.some((i) => i.id === variante?.id);
@@ -142,7 +144,7 @@ function Contenido({ producto, variantes, mostrarExistencia, relacionados }) {
                                     <h2 className="mb-2 text-sm font-semibold">Este modelo también está en</h2>
                                     <div className="flex flex-wrap gap-2">
                                         {variantes.map((v) => (
-                                            <button key={v.id} onClick={() => setSeleccion(v.id)}
+                                            <button key={v.id} onClick={() => { setSeleccion(v.id); setFoto(0); }}
                                                 className={cn('h-10 min-w-12 rounded-xl border-2 px-3 text-sm font-semibold tabular-nums transition-colors duration-300',
                                                     v.id === seleccion ? 'border-ink bg-ink text-white' : 'border-neutral-200 hover:border-neutral-500')}>
                                                 {v.talla}
