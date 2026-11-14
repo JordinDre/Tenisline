@@ -29,6 +29,24 @@ return [
         'ofertas' => ['label' => 'Ofertas', 'ofertas' => true],
     ],
 
+    // Colores del filtro: clave => [etiqueta, muestra, prefijos con los que empieza el color en inventario]
+    'colores' => [
+        'negro' => ['label' => 'Negro', 'hex' => '#111111', 'prefijos' => ['NEGR']],
+        'blanco' => ['label' => 'Blanco', 'hex' => '#ffffff', 'prefijos' => ['BLANC']],
+        'gris' => ['label' => 'Gris', 'hex' => '#9ca3af', 'prefijos' => ['GRIS']],
+        'azul' => ['label' => 'Azul', 'hex' => '#1d4ed8', 'prefijos' => ['AZUL']],
+        'celeste' => ['label' => 'Celeste', 'hex' => '#7dd3fc', 'prefijos' => ['CELESTE', 'AQUA']],
+        'beige' => ['label' => 'Beige', 'hex' => '#e7d8bd', 'prefijos' => ['BEIG', 'CREMA', 'HUESO']],
+        'cafe' => ['label' => 'Café', 'hex' => '#7c4a22', 'prefijos' => ['CAFE', 'CAFÉ', 'MARRON', 'MARRÓN']],
+        'verde' => ['label' => 'Verde', 'hex' => '#16a34a', 'prefijos' => ['VERDE']],
+        'rosa' => ['label' => 'Rosa', 'hex' => '#f9a8d4', 'prefijos' => ['ROSA', 'PALO ROSA', 'SALMON', 'SALMÓN']],
+        'morado' => ['label' => 'Morado', 'hex' => '#7e22ce', 'prefijos' => ['MORADO', 'LILA']],
+        'rojo' => ['label' => 'Rojo', 'hex' => '#dc2626', 'prefijos' => ['ROJO', 'COLORADO', 'CORINTO']],
+        'naranja' => ['label' => 'Naranja', 'hex' => '#f97316', 'prefijos' => ['NARANJA']],
+        'amarillo' => ['label' => 'Amarillo', 'hex' => '#facc15', 'prefijos' => ['AMARILLO', 'MOSTAZA']],
+        'multicolor' => ['label' => 'Multicolor', 'hex' => 'conic-gradient(#ef4444,#facc15,#22c55e,#3b82f6,#a855f7,#ef4444)', 'prefijos' => ['MULTICOLOR']],
+    ],
+
     // Marcas que no se muestran en el sitio (productos que no son calzado)
     'marcas_ocultas' => ['4X'],
 
