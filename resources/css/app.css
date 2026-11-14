@@ -80,15 +80,11 @@
   }
 }
 
-html {
-  scroll-behavior: smooth;
-}
+/* Sin scroll-behavior: smooth global: hacía que al cambiar de página el regreso
+   arriba quedara animado y se cortara, dejando al usuario al fondo de la pantalla */
 
 /* Quien tiene activado "reducir movimiento" en su teléfono o computadora no ve animaciones */
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
   .marquee-track,
   .animate-flotar,
   .animate-fade-up {

@@ -132,7 +132,7 @@ class TiendaController extends Controller
 
     public function catalogo(Request $request)
     {
-        $filtros = $request->only(['search', 'marca', 'categoria', 'genero', 'bodega', 'tallas', 'precioMin', 'precioMax', 'ofertas', 'marchamo']);
+        $filtros = $request->only(['search', 'marca', 'categoria', 'genero', 'bodega', 'tallas', 'colores', 'precioMin', 'precioMax', 'ofertas', 'marchamo']);
         $orden = $request->input('orden', 'recientes');
 
         $categorias = config('tienda.categorias');
@@ -154,11 +154,12 @@ class TiendaController extends Controller
             ),
             // La tienda del filtro global aplica salvo que el enlace traiga una bodega
             'productos' => CatalogoTienda::modelos(CatalogoTienda::consulta([...$filtros, 'sucursal' => empty($filtros['bodega']) ? CatalogoTienda::sucursal() : null]), $orden),
-            'filtros' => [...$filtros, 'orden' => $orden, 'tallas' => array_values((array) ($filtros['tallas'] ?? []))],
+            'filtros' => [...$filtros, 'orden' => $orden, 'tallas' => array_values((array) ($filtros['tallas'] ?? [])), 'colores' => array_values((array) ($filtros['colores'] ?? []))],
             'marcas' => CatalogoTienda::marcas(),
             'categorias' => CatalogoTienda::categorias(),
             'bodegas' => CatalogoTienda::bodegas(),
             'tallas' => CatalogoTienda::tallasDisponibles(),
+            'colores' => collect(config('tienda.colores'))->map(fn ($c, $clave) => ['clave' => $clave, 'label' => $c['label'], 'hex' => $c['hex']])->values(),
             'puedeVerMarchamo' => CatalogoTienda::esAdmin(),
         ]);
     }

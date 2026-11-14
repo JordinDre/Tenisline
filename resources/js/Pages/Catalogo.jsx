@@ -16,8 +16,8 @@ import Layout from '@/Layouts/Layout';
 import { capitalizar } from '@/lib/tienda';
 import { cn } from '@/lib/utils';
 import { Link, router, usePage } from '@inertiajs/react';
-import { ArrowUpDown, ChevronLeft, ChevronRight, SlidersHorizontal, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { ArrowUpDown, ChevronDown, ChevronLeft, ChevronRight, Loader2, Search, SlidersHorizontal, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 const contenedor = 'mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 xl:px-12';
 
@@ -34,6 +34,37 @@ const RANGOS = [
     { label: 'Q800 – Q1,200', min: 800, max: 1200 },
     { label: 'Más de Q1,200', min: 1200, max: null },
 ];
+
+/** true en pantallas menores a lg (donde los filtros van en el panel inferior). */
+function useEsMovil() {
+    const consulta = '(max-width: 1023px)';
+    const [movil, setMovil] = useState(false);
+    useEffect(() => {
+        const m = window.matchMedia(consulta);
+        const cambio = () => setMovil(m.matches);
+        cambio();
+        m.addEventListener('change', cambio);
+        return () => m.removeEventListener('change', cambio);
+    }, []);
+    return movil;
+}
+
+// Al regresar (botón atrás) desde un producto se recupera lo que ya se había cargado y el scroll
+let volviendo = false;
+if (typeof window !== 'undefined') window.addEventListener('popstate', () => { volviendo = true; });
+const claveMemoria = () => `catalogo:${window.location.pathname}${window.location.search}`;
+const leerMemoria = () => {
+    try { return JSON.parse(sessionStorage.getItem(claveMemoria())); } catch { return null; }
+};
+const guardarMemoria = (datos) => {
+    try { sessionStorage.setItem(claveMemoria(), JSON.stringify(datos)); } catch { /* sin almacenamiento: no se recuerda */ }
+};
+const irA = (y) => {
+    // Inertia también restaura el scroll; se repite para quedar por encima de su ajuste
+    [0, 80, 300].forEach((ms) => setTimeout(() => window.scrollTo({ top: y, behavior: 'instant' }), ms));
+};
+
+const alternar = (lista = [], v) => (lista.includes(v) ? lista.filter((x) => x !== v) : [...lista, v]);
 
 const MARCHAMOS = ['rojo', 'naranja', 'celeste', 'amarillo', 'blanco'];
 
@@ -55,8 +86,10 @@ function Grupo({ titulo, children }) {
     );
 }
 
-function Filtros({ f, set, marcas, categorias, tallas, puedeVerMarchamo }) {
+function Filtros({ f, set, marcas, categorias, tallas, colores, puedeVerMarchamo }) {
     const [precio, setPrecio] = useState({ min: f.precioMin ?? '', max: f.precioMax ?? '' });
+    const [todasMarcas, setTodasMarcas] = useState(false);
+    const marcasVisibles = todasMarcas || f.marca ? marcas : marcas.slice(0, 10);
     useEffect(() => setPrecio({ min: f.precioMin ?? '', max: f.precioMax ?? '' }), [f.precioMin, f.precioMax]);
 
     return (
@@ -72,9 +105,40 @@ function Filtros({ f, set, marcas, categorias, tallas, puedeVerMarchamo }) {
                 </div>
             </Grupo>
 
+            <Grupo titulo="Talla (US)">
+                <div className="grid grid-cols-5 gap-1.5">
+                    {tallas.map((t) => {
+                        const activa = (f.tallas ?? []).includes(t);
+                        return (
+                            <button key={t} onClick={() => set({ tallas: alternar(f.tallas, t) })}
+                                className={cn('h-9 rounded-lg border text-sm font-medium tabular-nums transition-all duration-300 active:scale-95',
+                                    activa ? 'border-ink bg-ink text-white' : 'border-neutral-200 hover:border-neutral-500')}>
+                                {t}
+                            </button>
+                        );
+                    })}
+                </div>
+            </Grupo>
+
+            <Grupo titulo="Color">
+                <div className="grid grid-cols-4 gap-x-1.5 gap-y-3">
+                    {colores.map((c) => {
+                        const activo = (f.colores ?? []).includes(c.clave);
+                        return (
+                            <button key={c.clave} onClick={() => set({ colores: alternar(f.colores, c.clave) })} className="group flex flex-col items-center gap-1.5">
+                                <span style={{ background: c.hex }}
+                                    className={cn('h-8 w-8 rounded-full ring-1 ring-black/10 transition-all duration-300 group-active:scale-90',
+                                        activo ? 'ring-2 ring-ink ring-offset-2' : 'group-hover:ring-neutral-400')} />
+                                <span className={cn('text-[11px] leading-none', activo ? 'font-bold' : 'text-neutral-600')}>{c.label}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </Grupo>
+
             <Grupo titulo="Marca">
-                <div className="grid max-h-[17rem] grid-cols-2 gap-1.5 overflow-y-auto pr-1 [scrollbar-width:thin]">
-                    {marcas.map((m) => (
+                <div className="grid grid-cols-2 gap-1.5">
+                    {marcasVisibles.map((m) => (
                         <button key={m.marca} onClick={() => set({ marca: f.marca === m.marca ? null : m.marca })}
                             className={cn('flex h-9 items-center justify-between gap-1 rounded-lg px-3 text-left text-sm transition-colors',
                                 f.marca === m.marca ? 'bg-ink text-white' : 'bg-neutral-100 hover:bg-neutral-200')}>
@@ -83,21 +147,12 @@ function Filtros({ f, set, marcas, categorias, tallas, puedeVerMarchamo }) {
                         </button>
                     ))}
                 </div>
-            </Grupo>
-
-            <Grupo titulo="Talla (US)">
-                <div className="grid grid-cols-5 gap-1.5">
-                    {tallas.map((t) => {
-                        const activa = (f.tallas ?? []).includes(t);
-                        return (
-                            <button key={t} onClick={() => set({ tallas: activa ? f.tallas.filter((x) => x !== t) : [...(f.tallas ?? []), t] })}
-                                className={cn('h-9 rounded-lg border text-sm font-medium tabular-nums transition-all duration-300 active:scale-95',
-                                    activa ? 'border-ink bg-ink text-white' : 'border-neutral-200 hover:border-neutral-500')}>
-                                {t}
-                            </button>
-                        );
-                    })}
-                </div>
+                {marcas.length > 10 && !f.marca && (
+                    <button onClick={() => setTodasMarcas((v) => !v)} className="mt-3 inline-flex items-center gap-1 text-sm font-semibold underline-offset-4 hover:underline">
+                        {todasMarcas ? 'Ver menos' : `Ver las ${marcas.length} marcas`}
+                        <ChevronDown className={cn('h-4 w-4 transition-transform', todasMarcas && 'rotate-180')} />
+                    </button>
+                )}
             </Grupo>
 
             <Grupo titulo="Precio">
@@ -147,20 +202,92 @@ function Filtros({ f, set, marcas, categorias, tallas, puedeVerMarchamo }) {
     );
 }
 
-export default function Catalogo({ productos, filtros = {}, marcas = [], categorias = [], bodegas = [], tallas = [], puedeVerMarchamo = false }) {
+export default function Catalogo({ productos, filtros = {}, marcas = [], categorias = [], bodegas = [], tallas = [], colores = [], puedeVerMarchamo = false }) {
     const [panel, setPanel] = useState(false);
     const [cargando, setCargando] = useState(false);
     const f = filtros;
     const tienda = usePage().props.tienda?.seleccionada;
+    const esMovil = useEsMovil();
+    const resultados = useRef(null);
+    const centinela = useRef(null);
+    const [texto, setTexto] = useState(f.search ?? '');
+    useEffect(() => setTexto(f.search ?? ''), [f.search]);
+
+    // En celular los productos se van sumando al bajar (scroll infinito) en lugar de paginar
+    const [lista, setLista] = useState(productos.data);
+    const [pagina, setPagina] = useState({ actual: productos.current_page, ultima: productos.last_page });
+    const agregando = useRef(false);
+    const estado = useRef({ lista, pagina });
+    estado.current = { lista, pagina };
 
     useEffect(() => {
-        const inicio = router.on('start', () => setCargando(true));
+        const nueva = { actual: productos.current_page, ultima: productos.last_page };
+        if (agregando.current) {
+            setLista((l) => [...l, ...productos.data.filter((p) => !l.some((x) => x.id === p.id))]);
+            setPagina(nueva);
+            agregando.current = false;
+            return;
+        }
+        if (volviendo) {
+            volviendo = false;
+            const memoria = leerMemoria();
+            if (memoria) {
+                if (memoria.lista?.length > productos.data.length && memoria.pagina?.ultima === productos.last_page) {
+                    setLista(memoria.lista);
+                    setPagina(memoria.pagina);
+                } else {
+                    setLista(productos.data);
+                    setPagina(nueva);
+                }
+                irA(memoria.y ?? 0);
+                return;
+            }
+        }
+        setLista(productos.data);
+        setPagina(nueva);
+    }, [productos]);
+
+    // Antes de salir del catálogo (o cambiar filtros) se guarda lo cargado y la posición
+    useEffect(() => router.on('before', () => guardarMemoria({ ...estado.current, y: window.scrollY })), []);
+
+    const hayMas = pagina.actual < pagina.ultima;
+
+    const cargarMas = () => {
+        if (agregando.current || !hayMas) return;
+        agregando.current = true;
+        router.get('/catalogo', limpiar({ ...f, page: pagina.actual + 1 }), {
+            only: ['productos'], preserveState: true, preserveScroll: true, preserveUrl: true,
+            onCancel: () => { agregando.current = false; },
+            onError: () => { agregando.current = false; },
+        });
+    };
+
+    useEffect(() => {
+        if (!esMovil || !hayMas || !centinela.current) return;
+        const obs = new IntersectionObserver(([e]) => (e.isIntersecting || e.boundingClientRect.top < 0) && cargarMas(), { rootMargin: '0px 0px 900px 0px' });
+        obs.observe(centinela.current);
+        return () => obs.disconnect();
+    });
+
+    // En desktop, al cambiar de página se sube al inicio de los resultados
+    const subirAResultados = () => {
+        const el = resultados.current;
+        if (el) window.scrollTo({ top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - 140), behavior: 'instant' });
+    };
+
+    useEffect(() => {
+        const inicio = router.on('start', () => !agregando.current && setCargando(true));
         const fin = router.on('finish', () => setCargando(false));
         return () => { inicio(); fin(); };
     }, []);
 
     const aplicar = (cambios) =>
         router.get('/catalogo', limpiar({ ...f, ...cambios, page: null }), { preserveState: true, preserveScroll: true, replace: true });
+
+    const buscar = (e) => {
+        e.preventDefault();
+        aplicar({ search: texto.trim() || null });
+    };
 
     const categoria = categorias.find((c) => c.clave === f.categoria);
     const titulo = f.search ? `“${f.search}”` : f.marca ? capitalizar(f.marca) : categoria ? categoria.label : 'Catálogo';
@@ -170,6 +297,7 @@ export default function Catalogo({ productos, filtros = {}, marcas = [], categor
         categoria && { k: 'categoria', t: categoria.label },
         f.marca && { k: 'marca', t: capitalizar(f.marca) },
         ...(f.tallas ?? []).map((t) => ({ k: 'tallas', v: t, t: `Talla ${t}` })),
+        ...(f.colores ?? []).map((c) => ({ k: 'colores', v: c, t: colores.find((x) => x.clave === c)?.label ?? c })),
         (f.precioMin || f.precioMax) && { k: 'precio', t: RANGOS.find((r) => mismo(r.min, f.precioMin) && mismo(r.max, f.precioMax))?.label ?? `Q${f.precioMin || 0} – Q${f.precioMax || '∞'}` },
         f.bodega && { k: 'bodega', t: bodegas.find((b) => mismo(b.id, f.bodega))?.bodega ?? 'Tienda' },
         !f.bodega && tienda && { k: 'tienda', t: `Tienda: ${capitalizar(tienda)}` },
@@ -178,13 +306,13 @@ export default function Catalogo({ productos, filtros = {}, marcas = [], categor
     ].filter(Boolean);
 
     const quitarChip = (c) => {
-        if (c.k === 'tallas') return aplicar({ tallas: f.tallas.filter((t) => t !== c.v) });
+        if (c.k === 'tallas' || c.k === 'colores') return aplicar({ [c.k]: f[c.k].filter((t) => t !== c.v) });
         if (c.k === 'precio') return aplicar({ precioMin: null, precioMax: null });
         if (c.k === 'tienda') return elegirTienda(null);
         aplicar({ [c.k]: null });
     };
 
-    const props = { f, set: aplicar, marcas, categorias, bodegas, tallas, puedeVerMarchamo };
+    const props = { f, set: aplicar, marcas, categorias, bodegas, tallas, colores, puedeVerMarchamo };
 
     return (
         <Layout>
@@ -210,7 +338,30 @@ export default function Catalogo({ productos, filtros = {}, marcas = [], categor
                         </div>
                     </aside>
 
-                    <div className="min-w-0 flex-1">
+                    <div ref={resultados} className="min-w-0 flex-1 scroll-mt-36">
+                        <form onSubmit={buscar} className="relative mb-4">
+                            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+                            <input type="search" value={texto} onChange={(e) => setTexto(e.target.value)} enterKeyHint="search"
+                                placeholder="Ej. nike negro talla 8"
+                                className="h-11 w-full rounded-full border-neutral-200 bg-neutral-50 pl-11 pr-24 text-sm focus:border-ink focus:bg-white focus:ring-ink" />
+                            <Button type="submit" size="sm" className="absolute right-1.5 top-1/2 h-8 -translate-y-1/2 rounded-full bg-ink px-4">Buscar</Button>
+                        </form>
+
+                        {/* Tallas a la mano en celular, sin abrir el panel de filtros */}
+                        <div className="-mx-4 mb-4 flex gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] lg:hidden">
+                            <span className="flex shrink-0 items-center pr-1 text-xs font-bold uppercase tracking-wider text-neutral-500">Talla</span>
+                            {tallas.map((t) => {
+                                const activa = (f.tallas ?? []).includes(t);
+                                return (
+                                    <button key={t} onClick={() => aplicar({ tallas: alternar(f.tallas, t) })}
+                                        className={cn('h-9 min-w-11 shrink-0 rounded-full border px-3 text-sm font-medium tabular-nums transition-all active:scale-95',
+                                            activa ? 'border-ink bg-ink text-white' : 'border-neutral-200 bg-white')}>
+                                        {t}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
                         <div className="mb-6 flex flex-wrap items-center gap-2">
                             <Button variant="outline" onClick={() => setPanel(true)} className="h-10 rounded-full border-neutral-200 px-4 font-semibold lg:hidden">
                                 <SlidersHorizontal className="h-4 w-4" /> Filtros
@@ -246,7 +397,7 @@ export default function Catalogo({ productos, filtros = {}, marcas = [], categor
                         </div>
 
                         <div className={cn('transition-opacity duration-500', cargando && 'pointer-events-none opacity-50')}>
-                            {productos.data.length === 0 ? (
+                            {lista.length === 0 ? (
                                 <div className="flex flex-col items-center rounded-3xl bg-neutral-50 px-6 py-20 text-center">
                                     <Logo alt="" className="w-36 opacity-20" />
                                     <h2 className="mt-6 text-xl font-bold">No encontramos modelos con esos filtros</h2>
@@ -255,19 +406,30 @@ export default function Catalogo({ productos, filtros = {}, marcas = [], categor
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3">
-                                    {productos.data.map((p, n) => <ProductoCard key={p.id} producto={p} indice={n} />)}
+                                    {lista.map((p, n) => <ProductoCard key={p.id} producto={p} indice={n % 24} />)}
                                 </div>
                             )}
                         </div>
 
-                        {productos.last_page > 1 && (
+                        {esMovil && hayMas && (
+                            <div ref={centinela} className="mt-10 flex justify-center">
+                                <Button variant="outline" onClick={cargarMas} className="h-11 rounded-full border-neutral-200 px-6 font-semibold">
+                                    <Loader2 className="h-4 w-4 animate-spin" /> Cargando más modelos…
+                                </Button>
+                            </div>
+                        )}
+                        {esMovil && !hayMas && lista.length > 0 && productos.last_page > 1 && (
+                            <p className="mt-10 text-center text-sm text-neutral-500">Viste los {productos.total} modelos</p>
+                        )}
+
+                        {!esMovil && productos.last_page > 1 && (
                             <nav className="mt-14 flex items-center justify-center gap-1" aria-label="Paginación">
                                 {productos.links.map((l, n) => {
                                     const extremo = n === 0 || n === productos.links.length - 1;
                                     const contenido = n === 0 ? <ChevronLeft className="h-4 w-4" /> : extremo ? <ChevronRight className="h-4 w-4" /> : l.label;
                                     const clase = cn('h-10 min-w-10 items-center justify-center rounded-full px-3 text-sm font-semibold tabular-nums', extremo ? 'flex' : 'hidden sm:flex');
                                     return l.url ? (
-                                        <Link key={n} href={l.url} className={cn(clase, 'transition-colors', l.active ? 'bg-ink text-white' : 'hover:bg-neutral-100')}>{contenido}</Link>
+                                        <Link key={n} href={l.url} preserveState preserveScroll onSuccess={subirAResultados} className={cn(clase, 'transition-colors', l.active ? 'bg-ink text-white' : 'hover:bg-neutral-100')}>{contenido}</Link>
                                     ) : (
                                         <span key={n} className={cn(clase, 'text-neutral-300')}>{contenido}</span>
                                     );

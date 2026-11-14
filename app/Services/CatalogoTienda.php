@@ -23,6 +23,72 @@ class CatalogoTienda
 
     public const SUCURSALES = ['zacapa', 'chiquimula', 'esquipulas'];
 
+    /** Talla normalizada en SQL: " 8.50" → "8.5", "8.0" → "8". */
+    private const SQL_TALLA = "TRIM(TRAILING '.' FROM IF(LOCATE('.', TRIM(productos.talla)) > 0, TRIM(TRAILING '0' FROM TRIM(productos.talla)), TRIM(productos.talla)))";
+
+    private const PALABRAS_GENERO = [
+        'CABALLERO' => ['hombre', 'hombres', 'caballero', 'caballeros', 'masculino', 'varon'],
+        'DAMA' => ['mujer', 'mujeres', 'dama', 'damas', 'femenino', 'chica'],
+        'NIÑO' => ['nino', 'ninos', 'nina', 'ninas', 'nene', 'juvenil'],
+        'INFANTE' => ['infante', 'infantes', 'bebe', 'bebes'],
+    ];
+
+    private const PALABRAS_OFERTA = ['oferta', 'ofertas', 'descuento', 'descuentos', 'rebaja', 'rebajas', 'promo', 'promocion', 'liquidacion'];
+
+    private const PALABRAS_VACIAS = ['de', 'del', 'para', 'en', 'el', 'la', 'los', 'las', 'y', 'con', 'color', 'tenis', 'zapato', 'zapatos', 'zapatilla', 'zapatillas', 'calzado'];
+
+    /**
+     * Separa la búsqueda en filtros que entiende (talla, género, color, oferta)
+     * y en el texto libre que se busca en código, nombre, modelo y marca.
+     */
+    public static function interpretarBusqueda(string $busqueda): array
+    {
+        $r = ['texto' => [], 'tallas' => [], 'posiblesTallas' => [], 'colores' => [], 'genero' => null, 'ofertas' => false];
+        $palabras = preg_split('/\s+/', trim(str_replace(',', '.', $busqueda)), -1, PREG_SPLIT_NO_EMPTY);
+        $colores = collect(config('tienda.colores', []))->mapWithKeys(fn ($c, $clave) => [$clave => $clave])
+            ->merge(['cafe' => 'cafe', 'marron' => 'cafe', 'rosado' => 'rosa', 'rosada' => 'rosa', 'lila' => 'morado', 'morada' => 'morado',
+                'roja' => 'rojo', 'negra' => 'negro', 'blanca' => 'blanco', 'amarilla' => 'amarillo', 'crema' => 'beige', 'aqua' => 'celeste', 'multi' => 'multicolor']);
+        $esTalla = fn ($p) => preg_match('/^\d{1,2}(\.5)?$/', $p) && (float) $p >= 1 && (float) $p <= 16;
+
+        for ($i = 0; $i < count($palabras); $i++) {
+            $original = $palabras[$i];
+            $p = strtolower(\Illuminate\Support\Str::ascii($original));
+            $p = ltrim($p, '#');
+
+            // "talla 7", "talla: 7.5", "t7", "#7"
+            if (in_array(rtrim($p, ':'), ['talla', 'tallas', 'size', 'no', 'numero', 't'], true) && isset($palabras[$i + 1]) && $esTalla(str_replace(',', '.', $palabras[$i + 1]))) {
+                $r['tallas'][] = self::talla($palabras[++$i]);
+                continue;
+            }
+            if (preg_match('/^(?:talla|t)(\d{1,2}(?:\.5)?)$/', $p, $m) && $esTalla($m[1])) {
+                $r['tallas'][] = self::talla($m[1]);
+                continue;
+            }
+            if (in_array($p, ['talla', 'tallas'], true) || in_array($p, self::PALABRAS_VACIAS, true)) {
+                continue;
+            }
+            if (in_array($p, self::PALABRAS_OFERTA, true)) {
+                $r['ofertas'] = true;
+                continue;
+            }
+            $genero = collect(self::PALABRAS_GENERO)->search(fn ($lista) => in_array($p, $lista, true));
+            if ($genero) {
+                $r['genero'] = $genero;
+                continue;
+            }
+            if (isset($colores[$p])) {
+                $r['colores'][] = $colores[$p];
+                continue;
+            }
+            if ($esTalla($p)) {
+                $r['posiblesTallas'][] = $original;
+            }
+            $r['texto'][] = $original;
+        }
+
+        return $r;
+    }
+
     /** Tienda elegida en el filtro global (cookie), o null si se ven todas. */
     public static function sucursal(): ?string
     {
@@ -61,15 +127,25 @@ class CatalogoTienda
                 });
         });
 
-        if (! empty($f['search'])) {
-            foreach (preg_split('/\s+/', trim($f['search'])) as $term) {
-                $q->where(fn ($w) => $w->where('productos.codigo', 'like', "%{$term}%")
+        // La búsqueda entiende tallas, género, colores y ofertas: "nike talla 7 negro mujer"
+        $busqueda = self::interpretarBusqueda((string) ($f['search'] ?? ''));
+        foreach ($busqueda['texto'] as $term) {
+            $q->where(function ($w) use ($term, $busqueda) {
+                $w->where('productos.codigo', 'like', "%{$term}%")
                     ->orWhere('productos.descripcion', 'like', "%{$term}%")
                     ->orWhere('productos.modelo', 'like', "%{$term}%")
                     ->orWhere('productos.color', 'like', "%{$term}%")
-                    ->orWhereHas('marca', fn ($m) => $m->where('marca', 'like', "%{$term}%")));
-            }
+                    ->orWhereHas('marca', fn ($m) => $m->where('marca', 'like', "%{$term}%"));
+                // Un número suelto chico también puede ser la talla ("nike 7")
+                if (in_array($term, $busqueda['posiblesTallas'], true)) {
+                    $w->orWhere(DB::raw(self::SQL_TALLA), self::talla($term));
+                }
+            });
         }
+        $f['tallas'] = [...(array) ($f['tallas'] ?? []), ...$busqueda['tallas']];
+        $f['colores'] = [...(array) ($f['colores'] ?? []), ...$busqueda['colores']];
+        $busqueda['genero'] && $q->where('genero', $busqueda['genero']);
+        $busqueda['ofertas'] && $q->where('precio_oferta', '>', 0);
 
         if (! empty($f['con_imagen'])) {
             $q->whereNotNull('productos.imagenes')->whereNotIn('productos.imagenes', ['[]', 'null', '']);
@@ -93,7 +169,16 @@ class CatalogoTienda
 
         if (! empty($f['tallas'])) {
             $tallas = collect((array) $f['tallas'])->map(fn ($t) => self::talla($t))->unique()->values()->all();
-            $q->whereIn(DB::raw("REPLACE(REPLACE(productos.talla, '.00', ''), '.0', '')"), $tallas);
+            $q->whereIn(DB::raw(self::SQL_TALLA), $tallas);
+        }
+
+        if (! empty($f['colores'])) {
+            $colores = collect((array) $f['colores'])->map(fn ($c) => config("tienda.colores.{$c}.prefijos"))->filter()->flatten()->unique();
+            $colores->isNotEmpty() && $q->where(function ($w) use ($colores) {
+                foreach ($colores as $prefijo) {
+                    $w->orWhere('productos.color', 'like', "{$prefijo}%");
+                }
+            });
         }
 
         if (! empty($f['precioMin'])) {
