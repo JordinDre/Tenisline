@@ -23,7 +23,7 @@ function BotonWhatsApp() {
     return (
         <div ref={ref} className="pointer-events-none fixed bottom-5 right-5 z-30 flex flex-col items-end gap-3">
             {/* El contenedor no recibe toques: el menú cerrado (invisible) tapaba la paginación y otros botones en celular */}
-            <div className={cn('w-64 origin-bottom-right rounded-2xl bg-white p-2  ring-1 ring-black/5 transition-all duration-300',
+            <div className={cn('w-64 origin-bottom-right rounded-2xl bg-white p-2  ring-1 ring-black/5 transition-[opacity,transform] duration-300',
                 abierto ? 'pointer-events-auto scale-100 opacity-100' : 'scale-95 opacity-0')}>
                 <p className="px-3 pb-1 pt-2 text-sm font-bold">Escríbenos a la tienda</p>
                 {/* La más cercana al cliente va primero */}

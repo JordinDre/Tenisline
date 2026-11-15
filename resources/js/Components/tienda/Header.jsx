@@ -71,10 +71,13 @@ export default function Header() {
     const [sombra, setSombra] = useState(false);
 
     useEffect(() => {
-        const onScroll = () => setSombra(window.scrollY > 8);
-        onScroll();
+        // Un cálculo por cuadro como máximo (no en cada evento de scroll)
+        let cuadro = 0;
+        const medir = () => { cuadro = 0; setSombra(window.scrollY > 8); };
+        const onScroll = () => { if (!cuadro) cuadro = requestAnimationFrame(medir); };
+        medir();
         window.addEventListener('scroll', onScroll, { passive: true });
-        return () => window.removeEventListener('scroll', onScroll);
+        return () => { window.removeEventListener('scroll', onScroll); cancelAnimationFrame(cuadro); };
     }, []);
 
     useEffect(() => {
@@ -93,7 +96,7 @@ export default function Header() {
         <>
             <Cinta avisos={props.tienda?.avisos} />
 
-            <header className={cn('sticky top-0 z-40 border-b bg-white/95 backdrop-blur-md transition-[border-color] duration-500 supports-[backdrop-filter]:bg-white/80', sombra ? 'border-neutral-200 ' : 'border-transparent')}>
+            <header className={cn('sticky top-0 z-40 border-b bg-white transition-[border-color] duration-500', sombra ? 'border-neutral-200 ' : 'border-transparent')}>
                 <div className="mx-auto flex h-16 max-w-screen-2xl items-center gap-3 px-4 sm:px-6 lg:h-20 lg:px-8 xl:px-12">
                     <Sheet open={menu} onOpenChange={setMenu}>
                         <SheetTrigger asChild>
@@ -155,7 +158,7 @@ export default function Header() {
                     </nav>
 
                     <div className="ml-auto flex items-center gap-1.5 xl:gap-2">
-                        <form onSubmit={buscar} className="group hidden h-10 items-center rounded-full bg-neutral-100 pl-4 pr-1 ring-brand/30 transition-all focus-within:bg-white focus-within:ring-2 xl:flex">
+                        <form onSubmit={buscar} className="group hidden h-10 items-center rounded-full bg-neutral-100 pl-4 pr-1 ring-brand/30 transition-[background-color,box-shadow] focus-within:bg-white focus-within:ring-2 xl:flex">
                             <Search className="h-4 w-4 shrink-0 text-neutral-500" />
                             <input value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Buscar modelo, marca o código"
                                 className="h-full w-56 border-0 bg-transparent px-2.5 text-sm placeholder:text-neutral-500 focus:ring-0 2xl:w-72" />

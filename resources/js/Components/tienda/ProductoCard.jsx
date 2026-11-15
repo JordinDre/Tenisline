@@ -40,7 +40,7 @@ export default function ProductoCard({ producto, indice = 0 }) {
                 <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex items-start justify-between gap-2">
                     {pct > 0 ? <span className="rounded-full bg-brand px-2.5 py-1 text-xs font-bold leading-none text-white">-{pct}%</span> : <span />}
                     {producto.genero && (
-                        <span className="rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold uppercase leading-none tracking-wide text-neutral-700 backdrop-blur">
+                        <span className="rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold uppercase leading-none tracking-wide text-neutral-700">
                             {capitalizar(producto.genero)}
                         </span>
                     )}

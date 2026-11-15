@@ -62,11 +62,15 @@ export default function ImagenProducto({ src, alt, className = '', sizes = '(min
     );
 
     return (
-        <div className={cn('relative overflow-hidden bg-neutral-100', className)}>
+        // contain: el difuminado y el pulso no obligan a repintar el resto de la página
+        <div className={cn('relative overflow-hidden bg-neutral-100 [contain:paint]', className)}>
             {!listo && <div aria-hidden="true" className="absolute inset-0 animate-pulse bg-neutral-200" />}
-            {/* Relleno: la misma foto, ampliada y difuminada (el navegador no la vuelve a descargar) */}
-            <img aria-hidden="true" alt="" {...comun} loading="lazy"
-                className={cn('absolute inset-0 h-full w-full scale-125 object-cover blur-2xl transition-opacity duration-700', listo ? 'opacity-70' : 'opacity-0')} />
+            {/* Relleno: la misma foto (ya en caché, no se vuelve a descargar), ampliada y difuminada.
+                Se monta hasta que la foto principal cargó: mientras carga no se calcula ningún difuminado. */}
+            {listo && (
+                <img aria-hidden="true" alt="" {...comun}
+                    className="absolute inset-0 h-full w-full scale-125 animate-in object-cover opacity-70 blur-2xl fade-in duration-700" />
+            )}
             {zoom ? <Zoom zoomImg={{ src: delS3 ? imagenAncho(src, 1200) : src }}>{frente}</Zoom> : frente}
         </div>
     );
