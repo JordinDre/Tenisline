@@ -103,7 +103,7 @@ function Contenido({ producto, variantes, mostrarExistencia, relacionados }) {
                             <div className="mt-3 hidden gap-3 lg:flex">
                                 {imagenes.map((img, n) => (
                                     <button key={n} onClick={() => setFoto(n)} onMouseEnter={() => setFoto(n)}
-                                        className={cn('h-20 w-20 overflow-hidden rounded-2xl bg-neutral-100 ring-2 ring-offset-2 transition-all', foto === n ? 'ring-brand' : 'ring-transparent opacity-70 hover:opacity-100')}>
+                                        className={cn('h-20 w-20 overflow-hidden rounded-2xl bg-neutral-100 ring-2 ring-offset-2 transition-[opacity,box-shadow]', foto === n ? 'ring-brand' : 'ring-transparent opacity-70 hover:opacity-100')}>
                                         <ImagenProducto src={img} alt="" sizes="80px" ancho={240} className="h-full w-full" />
                                     </button>
                                 ))}

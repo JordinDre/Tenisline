@@ -22,7 +22,7 @@ function FotoFlotante({ producto, className, giro, retraso }) {
             className={cn('group absolute animate-flotar transform-gpu overflow-hidden rounded-3xl bg-white   ring-1 ring-white/10', className)}
             style={{ '--giro': `${giro}deg`, animationDelay: `${retraso}s` }}>
             <ImagenProducto src={producto.imagen} alt={producto.descripcion} sizes="280px" prioridad className="h-full w-full transition-transform duration-700 group-hover:scale-105" />
-            <span className="absolute inset-x-2 bottom-2 flex items-center justify-between rounded-2xl bg-white/90 px-3 py-2 text-ink backdrop-blur">
+            <span className="absolute inset-x-2 bottom-2 flex items-center justify-between rounded-2xl bg-white/90 px-3 py-2 text-ink">
                 <span className="truncate text-xs font-semibold">{capitalizar(producto.marca)}</span>
                 <span className="ml-2 shrink-0 text-xs font-bold text-brand">{quetzales(producto.precio_oferta || producto.precio)}</span>
             </span>
@@ -129,8 +129,8 @@ function CarruselPromociones({ promociones }) {
                 </CarouselContent>
                 {promociones.length > 1 && (
                     <>
-                        <CarouselPrevious className="left-5 hidden h-11 w-11 border-0 bg-white/85 opacity-0 backdrop-blur transition-opacity group-hover:opacity-100 md:flex" />
-                        <CarouselNext className="right-5 hidden h-11 w-11 border-0 bg-white/85 opacity-0 backdrop-blur transition-opacity group-hover:opacity-100 md:flex" />
+                        <CarouselPrevious className="left-5 hidden h-11 w-11 border-0 bg-white/85 opacity-0 transition-opacity group-hover:opacity-100 md:flex" />
+                        <CarouselNext className="right-5 hidden h-11 w-11 border-0 bg-white/85 opacity-0 transition-opacity group-hover:opacity-100 md:flex" />
                     </>
                 )}
             </Carousel>
@@ -138,7 +138,7 @@ function CarruselPromociones({ promociones }) {
                 <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-2">
                     {promociones.map((_, n) => (
                         <button key={n} onClick={() => api?.scrollTo(n)} aria-label={`Promoción ${n + 1}`}
-                            className={cn('h-1.5 rounded-full transition-all duration-500', n === actual ? 'w-8 bg-brand' : 'w-3 bg-white/60 hover:bg-white')} />
+                            className={cn('h-1.5 rounded-full transition-[width,background-color] duration-500', n === actual ? 'w-8 bg-brand' : 'w-3 bg-white/60 hover:bg-white')} />
                     ))}
                 </div>
             )}
@@ -218,16 +218,16 @@ export default function Inicio({ promociones = [], categorias = [], marcas = [],
                     {categorias.map((c, n) => (
                         <Link key={c.clave} href={`/catalogo?categoria=${c.clave}`}
                             className={cn(
-                                'group relative flex aspect-[4/3] animate-fade-up flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br p-5 ring-1 ring-black/5 transition-transform duration-500 will-change-transform hover:-translate-y-1  md:aspect-[3/4] lg:p-6',
+                                'group relative flex aspect-[4/3] animate-fade-up flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br p-5 ring-1 ring-black/5 transition-transform duration-500 hover:-translate-y-1  md:aspect-[3/4] lg:p-6',
                                 ESTILO_CATEGORIA[c.clave] ?? 'from-neutral-100 to-white',
                                 n === categorias.length - 1 && categorias.length % 2 === 1 && 'col-span-2 aspect-[8/3] md:col-span-1 md:aspect-[3/4]',
                             )}
                             style={{ animationDelay: `${n * 100}ms` }}>
                             <div className="flex items-start justify-between">
-                                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/70 text-ink backdrop-blur">
+                                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/70 text-ink">
                                     {(() => { const Icono = ICONO_CATEGORIA[c.clave] ?? Tag; return <Icono className="h-5 w-5" strokeWidth={2} />; })()}
                                 </span>
-                                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/70 text-ink backdrop-blur transition-transform duration-500 group-hover:rotate-45">
+                                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/70 text-ink transition-transform duration-500 group-hover:rotate-45">
                                     <ArrowUpRight className="h-4 w-4" />
                                 </span>
                             </div>

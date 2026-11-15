@@ -17,7 +17,7 @@ export default function Marcas({ marcas = [] }) {
             <div className="mx-auto grid max-w-screen-2xl grid-cols-2 gap-4 px-4 py-10 sm:grid-cols-3 sm:px-6 lg:grid-cols-4 lg:px-8 xl:px-12">
                 {marcas.map((m, n) => (
                     <Link key={m.marca} href={`/catalogo?marca=${encodeURIComponent(m.marca)}`}
-                        className="group flex animate-fade-up flex-col rounded-3xl bg-white p-5 ring-1 ring-neutral-200 transition-all duration-500 hover:-translate-y-1 hover:ring-ink sm:p-6"
+                        className="group flex animate-fade-up flex-col rounded-3xl bg-white p-5 ring-1 ring-neutral-200 transition-[transform,box-shadow] duration-500 hover:-translate-y-1 hover:ring-ink sm:p-6"
                         style={{ animationDelay: `${Math.min(n, 12) * 40}ms` }}>
                         <div className="flex h-24 items-center justify-center rounded-2xl bg-neutral-50 transition-colors duration-500 group-hover:bg-white">
                             <LogoMarca marca={m.marca} logo={m.logo} className="h-11 w-32 transition-transform duration-500 group-hover:scale-110" />

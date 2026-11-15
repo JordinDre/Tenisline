@@ -74,7 +74,7 @@ const limpiar = (obj) =>
 const mismo = (a, b) => String(a ?? '') === String(b ?? '');
 
 const pastilla = (activa) =>
-    cn('inline-flex h-9 items-center rounded-full border px-4 text-sm font-medium transition-all duration-300 active:scale-95',
+    cn('inline-flex h-9 items-center rounded-full border px-4 text-sm font-medium transition-[color,background-color,border-color,transform] duration-300 active:scale-95',
         activa ? 'border-ink bg-ink text-white ' : 'border-neutral-200 bg-white hover:border-neutral-400');
 
 function Grupo({ titulo, children }) {
@@ -111,7 +111,7 @@ function Filtros({ f, set, marcas, categorias, tallas, colores, puedeVerMarchamo
                         const activa = (f.tallas ?? []).includes(t);
                         return (
                             <button key={t} onClick={() => set({ tallas: alternar(f.tallas, t) })}
-                                className={cn('h-9 rounded-lg border text-sm font-medium tabular-nums transition-all duration-300 active:scale-95',
+                                className={cn('h-9 rounded-lg border text-sm font-medium tabular-nums transition-[color,background-color,border-color,transform] duration-300 active:scale-95',
                                     activa ? 'border-ink bg-ink text-white' : 'border-neutral-200 hover:border-neutral-500')}>
                                 {t}
                             </button>
@@ -127,7 +127,7 @@ function Filtros({ f, set, marcas, categorias, tallas, colores, puedeVerMarchamo
                         return (
                             <button key={c.clave} onClick={() => set({ colores: alternar(f.colores, c.clave) })} className="group flex flex-col items-center gap-1.5">
                                 <span style={{ background: c.hex }}
-                                    className={cn('h-8 w-8 rounded-full ring-1 ring-black/10 transition-all duration-300 group-active:scale-90',
+                                    className={cn('h-8 w-8 rounded-full ring-1 ring-black/10 transition-[box-shadow,transform] duration-300 group-active:scale-90',
                                         activo ? 'ring-2 ring-ink ring-offset-2' : 'group-hover:ring-neutral-400')} />
                                 <span className={cn('text-[11px] leading-none', activo ? 'font-bold' : 'text-neutral-600')}>{c.label}</span>
                             </button>
@@ -354,7 +354,7 @@ export default function Catalogo({ productos, filtros = {}, marcas = [], categor
                                 const activa = (f.tallas ?? []).includes(t);
                                 return (
                                     <button key={t} onClick={() => aplicar({ tallas: alternar(f.tallas, t) })}
-                                        className={cn('h-9 min-w-11 shrink-0 rounded-full border px-3 text-sm font-medium tabular-nums transition-all active:scale-95',
+                                        className={cn('h-9 min-w-11 shrink-0 rounded-full border px-3 text-sm font-medium tabular-nums transition-[color,background-color,border-color,transform] active:scale-95',
                                             activa ? 'border-ink bg-ink text-white' : 'border-neutral-200 bg-white')}>
                                         {t}
                                     </button>

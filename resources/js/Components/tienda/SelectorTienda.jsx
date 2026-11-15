@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 import { MapPin } from 'lucide-react';
 
 const pastilla = (activa) =>
-    cn('inline-flex h-9 items-center rounded-full border px-4 text-sm font-medium transition-all duration-300 active:scale-95',
+    cn('inline-flex h-9 items-center rounded-full border px-4 text-sm font-medium transition-[color,background-color,border-color,transform] duration-300 active:scale-95',
         activa ? 'border-ink bg-ink text-white ' : 'border-neutral-200 bg-white hover:border-neutral-400');
 
 /** Pastillas "Todas / Zacapa / Chiquimula / Esquipulas" del filtro global de tienda. */
