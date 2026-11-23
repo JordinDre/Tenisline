@@ -23,7 +23,7 @@
         "kainiklas/filament-scout": "^0.4.0",
         "kenepa/banner": "^0.0.9",
         "kenepa/resource-lock": "^2.1",
-        "laravel/framework": "^11.9",
+        "laravel/framework": "^12.0",
         "laravel/horizon": "^5.30",
         "laravel/octane": "^2.6",
         "laravel/sanctum": "^4.0",
@@ -34,23 +34,22 @@
         "livewire/volt": "^1.0",
         "maatwebsite/excel": "^3.1",
         "meilisearch/meilisearch-php": "^1.12",
-        "milon/barcode": "^11.0",
+        "milon/barcode": "^12.0",
         "postare/blade-mdi": "^1.0",
         "predis/predis": "^2.3",
-        "psr/simple-cache": "^2.0",
+        "psr/simple-cache": "^2.0 || ^3.0",
         "pxlrbt/filament-excel": "^2.4",
         "rmsramos/activitylog": "^1.0",
-        "ryangjchandler/blade-tabler-icons": "^2.3",
         "saade/filament-fullcalendar": "^3.0",
+        "secondnetwork/blade-tabler-icons": "^3.0",
         "shuvroroy/filament-spatie-laravel-backup": "^2.2",
         "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-activitylog": "^4.9",
         "spatie/laravel-backup": "^9.3",
+        "spatie/laravel-settings": "^3.7",
         "stechstudio/filament-impersonate": "^3.14",
         "tightenco/ziggy": "^2.0",
-        "tomatophp/filament-pwa": "^1.0",
-        "twilio/sdk": "^8.12",
-        "yemenopensource/filament-excel": "^0.1.0"
+        "twilio/sdk": "^8.12"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -61,8 +60,8 @@
         "laravel/sail": "^1.26",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.0",
-        "pestphp/pest": "^2.36",
-        "pestphp/pest-plugin-laravel": "^2.4"
+        "pestphp/pest": "^3.0",
+        "pestphp/pest-plugin-laravel": "^3.0"
     },
     "autoload": {
         "psr-4": {

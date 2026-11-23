@@ -65,6 +65,22 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Estilos base que antes ponía daisyUI (se quitó porque ya no se usa); se conservan para que la tienda se vea igual */
+  :root {
+    color-scheme: light;
+    background-color: #ffffff;
+    color: #1f2937;
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  * {
+    scrollbar-color: color-mix(in oklch, currentColor 35%, transparent) transparent;
+  }
+  *:hover {
+    scrollbar-color: color-mix(in oklch, currentColor 60%, transparent) transparent;
+  }
 }
 
 /* Cintas que se desplazan: capa propia en la GPU, sin saltos al reiniciar y con pausa suave al pasar el mouse */

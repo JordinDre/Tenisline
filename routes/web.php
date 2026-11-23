@@ -14,6 +14,8 @@ Route::get('/marcas', [TiendaController::class, 'marcas'])->name('marcas');
 Route::get('/img/og/{ruta}', [\App\Http\Controllers\ImagenController::class, 'og'])->where('ruta', '.+')->name('imagen.og');
 Route::get('/img/{ancho}/{ruta}', \App\Http\Controllers\ImagenController::class)->where(['ancho' => '[0-9]+', 'ruta' => '.+'])->name('imagen');
 Route::get('/sitemap.xml', [TiendaController::class, 'sitemap'])->name('sitemap');
+Route::get('/manifest.json', [\App\Http\Controllers\PwaController::class, 'manifest'])->name('pwa.manifest');
+Route::get('/offline', [\App\Http\Controllers\PwaController::class, 'offline'])->name('pwa.offline');
 /* Route::get('/login', function () {
     return redirect('/admin');
 }); */

@@ -60,12 +60,15 @@ class AdminPanelProvider extends PanelProvider
             ->sidebarCollapsibleOnDesktop()
             ->sidebarWidth('15rem')
             ->breadcrumbs(false)
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::HEAD_END,
+                fn () => view('pwa.meta', ['config' => \App\Services\Pwa\ManifestService::generate()]),
+            )
             ->plugins([
                 FilamentFullCalendarPlugin::make()
                     ->selectable(true)
                     ->editable(true),
                 ResourceLockPlugin::make(),
-                \TomatoPHP\FilamentPWA\FilamentPWAPlugin::make(),
                 \Hasnayeen\Themes\ThemesPlugin::make()->canViewThemesPage(fn () => auth()->user() ? auth()->user()->hasAnyRole(User::ROLES_ADMIN) : false),
                 /* FilamentSpatieLaravelBackupPlugin::make(), */
                 ActivitylogPlugin::make()
