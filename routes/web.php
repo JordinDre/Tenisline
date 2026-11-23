@@ -29,19 +29,22 @@ Route::middleware('auth')->group(function () {
     Route::post('/restar-carrito/{id}', [TiendaController::class, 'restarCarrito'])->name('restar.carrito');
     Route::post('/eliminar-carrito/{id}', [TiendaController::class, 'eliminarCarrito'])->name('eliminar.carrito'); */
 
-    // REPORTES
-    Route::get('/reporte/ventas-general', [ReporteController::class, 'VentasGeneral'])->name('reporte.ventasgeneral');
-    Route::get('/reporte/ventas-detalle', [ReporteController::class, 'VentasDetalle'])->name('reporte.ventasdetalle');
-    Route::get('/reporte/pagos', [ReporteController::class, 'Pagos'])->name('reporte.pagos');
-    Route::get('/reporte/resultados', [ReporteController::class, 'Resultados'])->name('reporte.resultados');
-    Route::get('/reporte/historial-cliente', [ReporteController::class, 'HistorialCliente'])->name('reporte.historialcliente');
-    Route::get('/reporte/reporte-iventario', [ReporteController::class, 'ReporteInventario'])->name('reporte.reporteinventario');
+    // REPORTES (página Reportes del panel admin: solo super_admin, administrador y gerente)
+    Route::middleware('personal:super_admin,administrador,gerente')->group(function () {
+        Route::get('/reporte/ventas-general', [ReporteController::class, 'VentasGeneral'])->name('reporte.ventasgeneral');
+        Route::get('/reporte/ventas-detalle', [ReporteController::class, 'VentasDetalle'])->name('reporte.ventasdetalle');
+        Route::get('/reporte/pagos', [ReporteController::class, 'Pagos'])->name('reporte.pagos');
+        Route::get('/reporte/resultados', [ReporteController::class, 'Resultados'])->name('reporte.resultados');
+        Route::get('/reporte/historial-cliente', [ReporteController::class, 'HistorialCliente'])->name('reporte.historialcliente');
+        Route::get('/reporte/reporte-iventario', [ReporteController::class, 'ReporteInventario'])->name('reporte.reporteinventario');
+    });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::prefix('pdf')->group(function () {
+    // PDF: solo personal; cada método revisa además la policy del registro, igual que el botón del admin
+    Route::prefix('pdf')->middleware('personal')->group(function () {
         Route::get('/orden/{id}', [PDFController::class, 'orden'])->name('pdf.orden');
         Route::get('/cotizacion/{id}', [PDFController::class, 'cotizacion'])->name('pdf.cotizacion');
         Route::get('/recibo-orden/{id}', [PDFController::class, 'reciboOrden'])->name('pdf.recibo-orden');
@@ -62,21 +65,23 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-/* GUATEX */
-Route::prefix('guatex')->group(function () {
+/* GUATEX: solo personal con sesión. Lo que genera, elimina o cambia estados va por POST y solo para
+   administradores (el admin no llama estas rutas: usa GuatexService desde la acción de la venta). */
+Route::prefix('guatex')->middleware(['auth', 'personal'])->group(function () {
     Route::get('/destinos/{departamento}/{municipio?}', [GUATEXController::class, 'obtenerDestinos']);
     Route::get('/destino/{codigo}', [GUATEXController::class, 'consultarCodigoDestino']);
-    Route::get('/guia/{id}', [GUATEXController::class, 'generarGuia']);
     Route::get('/consulta_tracking/{tracking}', [GUATEXController::class, 'consultarTracking']);
-    Route::get('/eliminar_guia/{tracking}', [GUATEXController::class, 'eliminarGuia']);
-    Route::get('/recolectar/{tracking}', [GUATEXController::class, 'recolectar']);
-    Route::get('/entregar/{tracking}', [GUATEXController::class, 'entregar']);
-    Route::post('/liquidar', [GUATEXController::class, 'liquidar']);
     Route::get('/generar_guias_pdf/{id}', [GUATEXController::class, 'generarGuiasPdf'])->name('guatex.generar_guias_pdf');
-    Route::get('/obtenerContent/{id}', [GUATEXController::class, 'obtenerContent']);
-    Route::get('/actualizarOrdenesConTracking', [GUATEXController::class, 'actualizarOrdenesConTracking']);
+
+    Route::middleware('personal:super_admin,administrador')->group(function () {
+        Route::post('/guia/{id}', [GUATEXController::class, 'generarGuia']);
+        Route::post('/eliminar_guia/{tracking}', [GUATEXController::class, 'eliminarGuia']);
+        Route::post('/recolectar/{tracking}', [GUATEXController::class, 'recolectar']);
+        Route::post('/entregar/{tracking}', [GUATEXController::class, 'entregar']);
+        Route::post('/liquidar', [GUATEXController::class, 'liquidar']);
+        // Arma el XML con las credenciales de Guatex
+        Route::get('/obtenerContent/{id}', [GUATEXController::class, 'obtenerContent']);
+    });
 });
-
-
 
 require __DIR__.'/auth.php';

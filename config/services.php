@@ -43,11 +43,11 @@ return [
     ],
 
     'fel' => [
-        'usuario_api' => env('FEL_USUARIO_API', 'CALIDADES_DEMO'),
-        'llave_api' => env('FEL_LLAVE_API', '5885D496FAB7DF356E09C6734E34FC04'),
-        'usuario_firma' => env('FEL_USUARIO_FIRMA', 'CALIDADES_DEMO'),
-        'identificador' => env('FEL_IDENTIFICADOR', 'CALIDADES_DEMO'),
-        'llave_firma' => env('FEL_LLAVE_FIRMA', 'f8f8afb5c114c4f5aa485c41084c092e'),
+        'usuario_api' => env('FEL_USUARIO_API'),
+        'llave_api' => env('FEL_LLAVE_API'),
+        'usuario_firma' => env('FEL_USUARIO_FIRMA'),
+        'identificador' => env('FEL_IDENTIFICADOR'),
+        'llave_firma' => env('FEL_LLAVE_FIRMA'),
 
         'nit' => env('NIT'),
         'correo' => env('CORREO'),
@@ -63,11 +63,11 @@ return [
     ],
 
     'fel2' => [
-        'usuario_api' => env('FEL_USUARIO_API', 'CALIDADES_DEMO'),
-        'llave_api' => env('FEL_LLAVE_API', '5885D496FAB7DF356E09C6734E34FC04'),
-        'usuario_firma' => env('FEL_USUARIO_FIRMA', 'CALIDADES_DEMO'),
-        'identificador' => env('FEL_IDENTIFICADOR', 'CALIDADES_DEMO'),
-        'llave_firma' => env('FEL_LLAVE_FIRMA', 'f8f8afb5c114c4f5aa485c41084c092e'),
+        'usuario_api' => env('FEL_USUARIO_API'),
+        'llave_api' => env('FEL_LLAVE_API'),
+        'usuario_firma' => env('FEL_USUARIO_FIRMA'),
+        'identificador' => env('FEL_IDENTIFICADOR'),
+        'llave_firma' => env('FEL_LLAVE_FIRMA'),
 
         'nit' => env('NIT'),
         'correo' => env('CORREO'),
@@ -83,11 +83,11 @@ return [
     ],
 
     'fel3' => [
-        'usuario_api' => env('FEL_USUARIO_API', 'CALIDADES_DEMO'),
-        'llave_api' => env('FEL_LLAVE_API', '5885D496FAB7DF356E09C6734E34FC04'),
-        'usuario_firma' => env('FEL_USUARIO_FIRMA', 'CALIDADES_DEMO'),
-        'identificador' => env('FEL_IDENTIFICADOR', 'CALIDADES_DEMO'),
-        'llave_firma' => env('FEL_LLAVE_FIRMA', 'f8f8afb5c114c4f5aa485c41084c092e'),
+        'usuario_api' => env('FEL_USUARIO_API'),
+        'llave_api' => env('FEL_LLAVE_API'),
+        'usuario_firma' => env('FEL_USUARIO_FIRMA'),
+        'identificador' => env('FEL_IDENTIFICADOR'),
+        'llave_firma' => env('FEL_LLAVE_FIRMA'),
 
         'nit' => env('NIT'),
         'correo' => env('CORREO'),
@@ -104,19 +104,21 @@ return [
 
     // Configuración de Guatex
     'guatex' => [
+        // Token que deben mandar los webhooks /api/guatex/* (sin él quedan cerrados)
+        'webhook_token' => env('GUATEX_WEBHOOK_TOKEN'),
         'url_guias' => env('GUATEX_URL_GUIAS', 'https://guias.guatex.gt/tomarservicio/servicio'),
-        'usuario' => env('GUATEX_USUARIO', 'WSGTX'),
-        'password' => env('GUATEX_PASSWORD', 'GTXH4M123'),
-        'password_municipios' => env('GUATEX_PASSWORD_MUNICIPIOS', 'GTXCLDHMS'),
+        'usuario' => env('GUATEX_USUARIO'),
+        'password' => env('GUATEX_PASSWORD'),
+        'password_municipios' => env('GUATEX_PASSWORD_MUNICIPIOS'),
         // ZACAPA
-        'codigo_cobro_zacapa' => env('GUATEX_CODIGO_COBRO_ZACAPA', 'CON5723'),
-        'codigo_cobro_cod_zacapa' => env('GUATEX_CODIGO_COBRO_COD_ZACAPA', 'U8400016'),
+        'codigo_cobro_zacapa' => env('GUATEX_CODIGO_COBRO_ZACAPA'),
+        'codigo_cobro_cod_zacapa' => env('GUATEX_CODIGO_COBRO_COD_ZACAPA'),
         // CHIQUIMULA
-        'codigo_cobro_chiquimula' => env('GUATEX_CODIGO_COBRO_CHIQUIMULA', 'CON5723'),
-        'codigo_cobro_cod_chiquimula' => env('GUATEX_CODIGO_COBRO_COD_CHIQUIMULA', 'U8400016'),
+        'codigo_cobro_chiquimula' => env('GUATEX_CODIGO_COBRO_CHIQUIMULA'),
+        'codigo_cobro_cod_chiquimula' => env('GUATEX_CODIGO_COBRO_COD_CHIQUIMULA'),
         // ESQUIPULAS
-        'codigo_cobro_esquipulas' => env('GUATEX_CODIGO_COBRO_ESQUIPULAS', 'CON5723'),
-        'codigo_cobro_cod_esquipulas' => env('GUATEX_CODIGO_COBRO_COD_ESQUIPULAS', 'U8400016'),
+        'codigo_cobro_esquipulas' => env('GUATEX_CODIGO_COBRO_ESQUIPULAS'),
+        'codigo_cobro_cod_esquipulas' => env('GUATEX_CODIGO_COBRO_COD_ESQUIPULAS'),
     ],
 
 ];

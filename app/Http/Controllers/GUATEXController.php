@@ -24,6 +24,7 @@ class GUATEXController extends Controller
     public function generarGuiasPdf($id)
     {
         $venta = Venta::with('guias')->findOrFail($id);
+        $this->autorizarComoEnTabla(\App\Filament\Ventas\Resources\VentaResource::class, $venta->id);
 
         $html = view('pdf.guias', compact('venta'))->render();
         $pdf = Pdf::loadHTML($html)->setPaper([0, 0, 250, 500], "portrait");

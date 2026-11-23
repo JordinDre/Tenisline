@@ -8,7 +8,8 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::prefix('guatex')->group(function () {
+// Webhooks de Guatex: piden GUATEX_WEBHOOK_TOKEN (ver TokenWebhookGuatex)
+Route::prefix('guatex')->middleware('guatex.token')->group(function () {
     Route::get('/recolectar/{tracking}', [GUATEXController::class, 'recolectar']);
     Route::get('/entregar/{tracking}', [GUATEXController::class, 'entregar']);
     Route::post('/liquidar', [GUATEXController::class, 'liquidar']);
