@@ -381,6 +381,8 @@ class VentaResource extends Resource implements HasShieldPermissions
     public static function table(Table $table): Table
     {
         return $table
+            // Orden por defecto aquí (no en getEloquentQuery) para que el orden por columna funcione
+            ->defaultSort('created_at', 'desc')
             ->extremePaginationLinks()
             ->paginated([10, 25, 50])
             ->columns([
@@ -594,7 +596,7 @@ class VentaResource extends Resource implements HasShieldPermissions
                     ->label('Estado')
                     ->multiple()
                     ->options(EstadoVentaStatus::class),
-            ], layout: FiltersLayout::AboveContent)->persistFiltersInSession()
+            ], layout: FiltersLayout::AboveContentCollapsible)->persistFiltersInSession()
             ->actions([
                 ActionGroup::make([
                     Tables\Actions\ViewAction::make(),
@@ -1463,8 +1465,7 @@ class VentaResource extends Resource implements HasShieldPermissions
                 'bodega',
                 'pagos.tipoPago',
                 'factura',
-            ])
-            ->orderByDesc('created_at');
+            ]);
 
         $user = \Filament\Facades\Filament::auth()->user();
 

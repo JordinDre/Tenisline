@@ -2,3 +2,124 @@
 @import '../../../../vendor/kenepa/banner/resources/css/index.css';
 
 @config 'tailwind.config.js';
+
+/*
+ * Estilo Tenisline para los 3 paneles (admin, ventas, inventario): simple y minimalista.
+ * Solo cambia la apariencia; no toca flujos ni campos. Guía: docs/GUIA-DISENO.md
+ */
+
+@layer components {
+    /* Botones: mayúsculas, mismo tamaño y peso en todo el sistema */
+    .fi-btn {
+        @apply uppercase tracking-wide;
+        font-size: 0.8125rem;
+        line-height: 1.25rem;
+        min-height: 2.25rem;
+    }
+
+    .fi-btn.fi-size-xs,
+    .fi-btn.fi-size-sm {
+        min-height: 2rem;
+        font-size: 0.75rem;
+    }
+
+    /* Sin sombras grandes: solo un borde suave */
+    .fi-section,
+    .fi-ta-ctn,
+    .fi-wi-stats-overview-stat,
+    .fi-wi-chart,
+    .fi-fo-repeater-item,
+    .fi-in-repeatable-item,
+    .fi-modal-window,
+    .fi-dropdown-panel,
+    .fi-input-wrp,
+    .fi-topbar > nav,
+    .fi-sidebar-header,
+    .fi-simple-main {
+        @apply shadow-none;
+    }
+
+    .fi-modal-window,
+    .fi-dropdown-panel {
+        @apply ring-1 ring-gray-950/10 dark:ring-white/10;
+    }
+
+    /* Bordes suaves y menos relleno */
+    .fi-section,
+    .fi-ta-ctn,
+    .fi-wi-stats-overview-stat,
+    .fi-wi-chart,
+    .fi-simple-main {
+        @apply rounded-lg;
+    }
+
+    .fi-section-content {
+        @apply p-4;
+    }
+
+    .fi-section-header {
+        @apply px-4 py-3;
+    }
+
+    .fi-wi-stats-overview-stat {
+        @apply p-4;
+    }
+
+    /* Título de la pantalla un poco más compacto */
+    .fi-header-heading {
+        @apply text-xl sm:text-2xl;
+    }
+
+    .fi-header {
+        @apply gap-3;
+    }
+
+    /* Chips de filtros aplicados: más fáciles de tocar en celular */
+    .fi-ta-filter-indicators .fi-badge {
+        @apply py-1;
+    }
+}
+
+/* Celular: inputs de 16 px para que iOS no haga zoom; avisos visibles y a lo ancho */
+@media (max-width: 767px) {
+    .fi-input,
+    .fi-select-input,
+    .fi-fo-textarea,
+    .fi-ta-search-field input,
+    .choices__input,
+    input[type='text'],
+    input[type='email'],
+    input[type='number'],
+    input[type='search'],
+    input[type='tel'],
+    input[type='password'],
+    input[type='date'],
+    input[type='datetime-local'],
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+
+    .fi-no {
+        @apply inset-x-0 top-0 w-full max-w-none px-3 pt-3;
+    }
+
+    .fi-no-notification {
+        @apply w-full max-w-none;
+    }
+
+    /* La página nunca se desplaza a lo ancho: las tablas se desplazan dentro de su caja */
+    .fi-main {
+        @apply max-w-full overflow-x-clip;
+    }
+}
+
+/* "Limpiar" del formulario de filtros solo cuando hay filtros aplicados (hay chips) */
+.fi-ta-ctn:not(:has(.fi-ta-filter-indicators)) .fi-ta-filters > div:first-child .fi-link {
+    display: none;
+}
+
+/* Contador del botón "Filtros": solo cuando hay filtros aplicados (Filament muestra "0") */
+.fi-ta-ctn:not(:has(.fi-ta-filter-indicators)) .fi-ta-header-ctn .fi-btn-badge-ctn {
+    display: none;
+}

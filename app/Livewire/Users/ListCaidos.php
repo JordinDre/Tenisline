@@ -122,7 +122,7 @@ class ListCaidos extends Component implements HasForms, HasTable
                                 fn (Builder $query) => $query->whereDoesntHave('seguimientos')
                             );
                     }),
-            ], layout: FiltersLayout::AboveContent)
+            ], layout: FiltersLayout::AboveContentCollapsible)
             ->actions([
                 Tables\Actions\Action::make('asignar')
                     ->color('success')

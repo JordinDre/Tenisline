@@ -31,6 +31,16 @@
 <meta name="msapplication-TileImage" content="{{ data_get(end($config['icons']), 'src') }}">
 
 <script type="text/javascript">
+    // Guarda el aviso nativo de instalación (Android/Chrome) para mostrarlo desde pwa.instalar
+    if (! window.__pwaEscuchando) {
+        window.__pwaEscuchando = true;
+        window.addEventListener('beforeinstallprompt', function (e) {
+            e.preventDefault();
+            window.__pwaInstalar = e;
+            window.dispatchEvent(new Event('pwa-instalable'));
+        });
+    }
+
     // Initialize the service worker
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/serviceworker.js', {

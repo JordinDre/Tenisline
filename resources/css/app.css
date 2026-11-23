@@ -219,3 +219,12 @@
 
 /* Foto ampliada: fondo oscuro */
 .dark [data-rmiz-modal-overlay='visible'] { background-color: rgb(10 10 10 / 0.95); }
+
+/* Celular: inputs de 16 px para que iOS no haga zoom al tocarlos (en escritorio se ven igual que antes) */
+@media (max-width: 767px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

@@ -100,6 +100,8 @@ class CierreResource extends Resource
     {
 
         return $table
+            // Orden por defecto aquí (no en getEloquentQuery) para que el orden por columna funcione
+            ->defaultSort('apertura', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->label('No. Cierre')
@@ -132,7 +134,8 @@ class CierreResource extends Resource
                 Tables\Columns\TextColumn::make('total_ventas')
                     ->label('Total')
                     ->money('GTQ') // o 'USD', o elimina si no quieres formato de moneda
-                    ->sortable(),
+                    // Mismo cálculo que total_ventas, en SQL (antes daba error: no es columna)
+                    ->sortable(query: fn (Builder $query, string $direction) => $query->orderBy(Cierre::subconsultaTotalVentas(), $direction)),
                 Tables\Columns\TextColumn::make('resumen_pagos')
                     ->label('Resumen Pagos')
                     ->listWithLineBreaks(),
@@ -420,8 +423,7 @@ class CierreResource extends Resource
         $user = \Filament\Facades\Filament::auth()->user();
 
         $query = parent::getEloquentQuery()
-            ->with(['bodega', 'user'])
-            ->orderByDesc('apertura');
+            ->with(['bodega', 'user']);
 
         if ($user->hasAnyRole(['administrador', 'super_admin', 'auxiliar'])) {
             return $query;

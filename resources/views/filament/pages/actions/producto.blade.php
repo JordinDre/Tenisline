@@ -3,5 +3,5 @@
         <img src="{{ $url }}" alt="{{ $alt }}" loading="lazy" class="w-full h-auto rounded-lg" />
     </div>
 @else
-    <p class="text-center text-zinc-500">No hay imagen disponible</p>
+    <p class="text-center text-zinc-500 dark:text-gray-400">No hay imagen disponible</p>
 @endif

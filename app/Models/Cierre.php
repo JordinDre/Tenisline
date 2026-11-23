@@ -111,6 +111,24 @@ class Cierre extends Model
         });
     }
 
+    /**
+     * Subconsulta con el mismo total que getTotalVentasAttribute(), para ordenar la tabla en SQL.
+     */
+    public static function subconsultaTotalVentas(): \Illuminate\Database\Eloquent\Builder
+    {
+        return Venta::selectRaw('COALESCE(SUM(ventas.total), 0)')
+            ->whereColumn('ventas.bodega_id', 'cierres.bodega_id')
+            ->where(function ($q) {
+                $q->whereIn('estado', ['creada', 'liquidada'])
+                    ->orWhere(function ($subQ) {
+                        $subQ->where('estado', 'parcialmente_devuelta')
+                            ->whereHas('detalles.producto', fn ($q2) => $q2->where('devuelto', 0));
+                    });
+            })
+            ->whereColumn('ventas.created_at', '>=', 'cierres.apertura')
+            ->where(fn ($q) => $q->whereNull('cierres.cierre')->orWhereColumn('ventas.created_at', '<=', 'cierres.cierre'));
+    }
+
     public function getTotalTenisAttribute()
     {
         return $this->memo('getTotalTenisAttribute', function () {

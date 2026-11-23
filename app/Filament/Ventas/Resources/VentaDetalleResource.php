@@ -258,7 +258,7 @@ class VentaDetalleResource extends Resource implements HasShieldPermissions
 
                         return $query;
                     }),
-            ], layout: FiltersLayout::AboveContent)->persistFiltersInSession();
+            ], layout: FiltersLayout::AboveContentCollapsible)->persistFiltersInSession();
     }
 
     public static function getRelations(): array

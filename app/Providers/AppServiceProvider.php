@@ -58,6 +58,9 @@ class AppServiceProvider extends ServiceProvider
 
         Table::$defaultNumberLocale = 'es_GT';
 
+        // Filtros: botón "Filtros", recordados por módulo y chips con × (ver app/Support/FiltrosTabla.php)
+        \App\Support\FiltrosTabla::registrar();
+
         Model::unguard();
         PanelSwitch::configureUsing(function (PanelSwitch $panelSwitch) {
             $panelSwitch->modalHeading('Cambiar de Panel');
@@ -76,7 +79,8 @@ class AppServiceProvider extends ServiceProvider
         });
 
         FilamentColor::register([
-            'primary' => Color::Sky,
+            // Naranja de la marca (el mismo acento de la tienda)
+            'primary' => Color::hex('#ff4f17'),
             'danger' => Color::Red,
             'zinc' => Color::Gray,
             'info' => Color::Blue,

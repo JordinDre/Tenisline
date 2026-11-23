@@ -1,6 +1,6 @@
 <div class="p-4">
     @if(empty($movimientos))
-        <div class="text-center py-4 text-gray-500">
+        <div class="text-center py-4 text-gray-500 dark:text-gray-400">
             No se encontraron movimientos para esta guía.
         </div>
     @else
