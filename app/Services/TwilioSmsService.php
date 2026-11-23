@@ -20,7 +20,9 @@ class TwilioSmsService
             return;
         }
 
-        $client = new Client(config('services.twilio.account_sid'), config('services.twilio.auth_token'));
+        // Límite de tiempo: si Twilio no responde, la acción muestra el aviso de "no se pudo enviar" en vez de colgarse
+        $http = new \Twilio\Http\CurlClient([CURLOPT_CONNECTTIMEOUT => 5, CURLOPT_TIMEOUT => 20]);
+        $client = new Client(config('services.twilio.account_sid'), config('services.twilio.auth_token'), null, null, $http);
 
         $client->messages->create($numeroDestino, [
             'from' => config('services.twilio.alpha_sender'),

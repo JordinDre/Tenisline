@@ -1488,10 +1488,16 @@ class VentaResource extends Resource implements HasShieldPermissions
 
     public static function hayBloqueo(): bool
     {
-        return Venta::where('estado', 'validacion_pago')
-            ->where('requiere_validacion_pago', true)
-            ->where('created_at', '<=', now()->subHour())
-            ->exists();
+        // Se consulta una vez por petición: lo piden la navegación de cada recurso (~60 veces por página)
+        $attrs = request()->attributes;
+        if (! $attrs->has('venta.hay_bloqueo')) {
+            $attrs->set('venta.hay_bloqueo', Venta::where('estado', 'validacion_pago')
+                ->where('requiere_validacion_pago', true)
+                ->where('created_at', '<=', now()->subHour())
+                ->exists());
+        }
+
+        return $attrs->get('venta.hay_bloqueo');
     }
 
     /**

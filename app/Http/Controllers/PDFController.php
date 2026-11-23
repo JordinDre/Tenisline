@@ -204,6 +204,8 @@ class PDFController extends Controller
                     CURLOPT_POST => true,
                     CURLOPT_POSTFIELDS => $zpl,
                     CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_CONNECTTIMEOUT => 10,
+                    CURLOPT_TIMEOUT => 60,
                     CURLOPT_HTTPHEADER => [
                         'Accept: application/pdf',
                     ],

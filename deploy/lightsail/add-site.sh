@@ -40,10 +40,8 @@ server {
     index index.php;
     client_max_body_size 50M;
 
-    add_header X-Frame-Options "SAMEORIGIN";
-    add_header X-Content-Type-Options "nosniff";
+    # X-Frame-Options, nosniff, Referrer-Policy y Permissions-Policy los pone Laravel (SecurityHeaders)
     add_header Strict-Transport-Security "max-age=31536000" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin";
 
     limit_req zone=robots burst=20 nodelay;
     limit_req_status 429;
@@ -60,6 +58,14 @@ server {
         fastcgi_param SCRIPT_FILENAME \$realpath_root/index.php;
         fastcgi_param SCRIPT_NAME /index.php;
         fastcgi_read_timeout 60;
+    }
+
+    # Assets de Vite: el nombre lleva hash, así que se pueden guardar 1 año
+    location ^~ /build/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        access_log off;
+        try_files \$uri =404;
     }
 
     location / {
