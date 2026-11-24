@@ -34,9 +34,15 @@ class VentasPanelProvider extends PanelProvider
             ->profile()
             ->login()
             ->brandName('TenisLine')
-            ->brandLogo(asset('images/logo.png'))
-            ->darkModeBrandLogo(asset('images/logoBlanco.png'))
-            ->brandLogoHeight('3rem')
+            // PWA: manifest y sugerencia de instalar la app en el celular
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::HEAD_END,
+                fn () => view('pwa.meta', ['config' => \App\Services\Pwa\ManifestService::generate()]),
+            )
+            ->renderHook(\Filament\View\PanelsRenderHook::BODY_END, fn () => view('pwa.instalar'))
+            ->brandLogo(asset('images/logo-panel-negro.png'))
+            ->darkModeBrandLogo(asset('images/logo-panel-blanco.png'))
+            ->brandLogoHeight('2.25rem')
             ->favicon(asset('images/icono.png'))
             ->font('Poppins')
             ->databaseTransactions()

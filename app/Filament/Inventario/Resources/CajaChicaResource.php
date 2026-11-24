@@ -152,7 +152,13 @@ class CajaChicaResource extends Resource implements HasShieldPermissions
                 Tables\Columns\TextColumn::make('pagos.monto')
                     ->label('Monto')
                     ->copyable()
-                    ->sortable(),
+                    // Ordena por la suma de los pagos (antes daba error: el registro puede tener varios)
+                    ->sortable(query: fn (Builder $query, string $direction) => $query->orderBy(
+                        Pago::selectRaw('COALESCE(SUM(monto), 0)')
+                            ->whereColumn('pagos.pagable_id', 'caja_chicas.id')
+                            ->where('pagos.pagable_type', (new CajaChica)->getMorphClass()),
+                        $direction
+                    )),
                 Tables\Columns\TextColumn::make('pagos.no_documento')
                     ->label('No. Documento'),
                 Tables\Columns\TextColumn::make('detalle_gasto')

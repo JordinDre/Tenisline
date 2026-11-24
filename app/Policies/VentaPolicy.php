@@ -168,7 +168,7 @@ class VentaPolicy
 
         $estadosPermitidos = ['creada', 'liquidada', 'enviado'];
 
-        if (! in_array($venta->estado->value, $estadosPermitidos) || ! $venta->factura()->exists()) {
+        if (! in_array($venta->estado->value, $estadosPermitidos) || ! ($venta->relationLoaded('factura') ? $venta->factura !== null : $venta->factura()->exists())) {
             return false;
         }
 
@@ -192,7 +192,7 @@ class VentaPolicy
         return false;
         $estadosPermitidos = ['creada'];
 
-        return $user->can('facturar_venta') && in_array($venta->estado->value, $estadosPermitidos) && ! $venta->factura()->exists();
+        return $user->can('facturar_venta') && in_array($venta->estado->value, $estadosPermitidos) && ! ($venta->relationLoaded('factura') ? $venta->factura !== null : $venta->factura()->exists());
     }
 
     public function return(User $user, Venta $venta): bool

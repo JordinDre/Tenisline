@@ -1,6 +1,6 @@
 <div class="overflow-x-auto">
-    <table class="w-full divide-zinc-200 border border-zinc-200 rounded-lg shadow-sm">
-        <thead class="bg-zinc-50">
+    <table class="w-full divide-zinc-200 border border-zinc-200 rounded-lg shadow-sm dark:border-white/10 dark:divide-white/10">
+        <thead class="bg-zinc-50 dark:bg-white/5">
             <tr>
                 <th class="px-6 py-3 text-left text-sm font-semibold tracking-wider">Id Venta</th>
                 <th class="px-6 py-3 text-left text-sm font-semibold tracking-wider">Nombre</th>
@@ -15,7 +15,7 @@
                 <th class="px-6 py-3 text-left text-sm font-semibold tracking-wider">Asesor</th>
             </tr>
         </thead>
-        <tbody class="bg-white divide-y divide-zinc-200">
+        <tbody class="bg-white divide-y divide-zinc-200 dark:bg-gray-900 dark:divide-white/10">
             @foreach ($ventas as $venta)
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap">{{ $venta->venta_id }}</td>

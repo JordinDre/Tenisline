@@ -377,6 +377,8 @@ class CompraResource extends Resource implements HasShieldPermissions
     public static function table(Table $table): Table
     {
         return $table
+            // Orden por defecto aquí (no en getEloquentQuery) para que el orden por columna funcione
+            ->defaultSort('created_at', 'desc')
             ->extremePaginationLinks()
             ->paginated([10, 25, 50])
             ->columns([
@@ -499,8 +501,7 @@ class CompraResource extends Resource implements HasShieldPermissions
 
         $query = parent::getEloquentQuery()
             ->withoutGlobalScopes([SoftDeletingScope::class])
-            ->with(['bodega'])
-            ->orderByDesc('created_at');
+            ->with(['bodega']);
 
         if ($user->hasAnyRole(['administrador', 'super_admin'])) {
             return $query;

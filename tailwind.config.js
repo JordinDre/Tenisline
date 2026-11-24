@@ -1,6 +1,6 @@
 import forms from '@tailwindcss/forms';
 import defaultTheme from 'tailwindcss/defaultTheme';
-const flowbite = require('flowbite-react/tailwind');
+import paleta from './tailwind.paleta.js';
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -14,14 +14,13 @@ export default {
         './app/Filament/**/*.php',
         './resources/views/filament/**/*.blade.php',
         './vendor/filament/**/*.blade.php',
-        flowbite.content(),
     ],
-    daisyui: {
-        themes: ['light'],
-    },
 
     theme: {
     	extend: {
+    		// Antes los ponía el plugin de flowbite
+    		height: { modal: 'calc(100% - 2rem)' },
+    		boxShadow: { 'sm-light': '0 2px 5px 0px rgba(255, 255, 255, 0.08)' },
     		fontFamily: {
     			sans: [
     				'Figtree',
@@ -86,6 +85,7 @@ export default {
     			sm: 'calc(var(--radius) - 4px)'
     		},
     		colors: {
+    			...paleta,
     			brand: {
     				DEFAULT: '#ff4f17',
     				dark: '#e03e0a',
@@ -136,5 +136,5 @@ export default {
     	}
     },
 
-    plugins: [forms, require('daisyui'), flowbite.plugin(), require("tailwindcss-animate")],
+    plugins: [forms, require("tailwindcss-animate")],
 };

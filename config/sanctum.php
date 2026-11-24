@@ -47,7 +47,8 @@ return [
     |
     */
 
-    'expiration' => null,
+    // Minutos de vida de los tokens. Sin SANCTUM_EXPIRATION no expiran (igual que antes).
+    'expiration' => env('SANCTUM_EXPIRATION') ? (int) env('SANCTUM_EXPIRATION') : null,
 
     /*
     |--------------------------------------------------------------------------

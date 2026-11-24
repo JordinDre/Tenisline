@@ -31,6 +31,7 @@ return [
 
     'default' => [
         'theme' => 'default',
-        'theme_color' => 'blue',
+        // Naranja de la marca. Un admin puede elegir otro en la página Temas.
+        'theme_color' => \Filament\Support\Colors\Color::hex('#ff4f17'),
     ],
 ];

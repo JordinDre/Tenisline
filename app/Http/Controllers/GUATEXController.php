@@ -24,6 +24,7 @@ class GUATEXController extends Controller
     public function generarGuiasPdf($id)
     {
         $venta = Venta::with('guias')->findOrFail($id);
+        $this->autorizarComoEnTabla(\App\Filament\Ventas\Resources\VentaResource::class, $venta->id);
 
         $html = view('pdf.guias', compact('venta'))->render();
         $pdf = Pdf::loadHTML($html)->setPaper([0, 0, 250, 500], "portrait");
@@ -246,6 +247,7 @@ class GUATEXController extends Controller
                 'header' => implode("\r\n", $headers),
                 'method' => 'POST',
                 'content' => $content,
+                'timeout' => 30,
             ],
         ];
 
@@ -325,7 +327,8 @@ class GUATEXController extends Controller
             $soap = new \SoapClient($url, [
                 'trace' => 1,
                 'exceptions' => true,
-                'cache_wsdl' => WSDL_CACHE_NONE
+                'cache_wsdl' => WSDL_CACHE_NONE,
+                'connection_timeout' => 10,
             ]);
 
             $response = $soap->consultaws(['noguia' => $tracking]);
@@ -368,7 +371,7 @@ class GUATEXController extends Controller
         $response = Http::withHeaders([
             'Content-Type' => 'text/xml; charset=utf-8',
             'SOAPAction' => 'http://tempuri.org/'.$method
-        ])->send('POST', $url, [
+        ])->connectTimeout(10)->timeout(30)->send('POST', $url, [
             'body' => $content
         ]);
 
@@ -864,7 +867,7 @@ class GUATEXController extends Controller
             $response = Http::withHeaders([
                 'Authorization' => 'AccessKey '.$accessKey,
                 'Content-Type' => 'application/json',
-            ])->post($url, [
+            ])->connectTimeout(10)->timeout(30)->post($url, [
                 'receiver' => [
                     'contacts' => [
                         [

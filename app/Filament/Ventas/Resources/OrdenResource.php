@@ -286,7 +286,7 @@ class OrdenResource extends Resource implements HasShieldPermissions
                     ->multiple()
                     ->options(EnvioStatus::class),
 
-            ], layout: FiltersLayout::AboveContent)->persistFiltersInSession()
+            ], layout: FiltersLayout::AboveContentCollapsible)->persistFiltersInSession()
             ->actions([
                 Action::make('collect')
                     ->label('Recolectar')

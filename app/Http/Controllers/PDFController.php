@@ -12,13 +12,15 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use App\Http\Controllers\GUATEXController;
 
 class PDFController extends Controller
 {
     public function orden($id)
     {
-        $orden = Orden::find($id);
+        $orden = Orden::findOrFail($id);
+        Gate::authorize('view', $orden);
         $html = view('pdf.orden', compact('orden'))->render();
         $pdf = Pdf::loadHTML($html);
 
@@ -51,6 +53,9 @@ class PDFController extends Controller
             'user',
         ])->findOrFail($id);
 
+        // Mismo alcance que la tabla de cierres: admin/auxiliar todos; los demás solo los suyos
+        $this->autorizarComoEnTabla(\App\Filament\Ventas\Resources\CierreResource::class, $cierre->id);
+
         if ($cierre->cierre === null && ! auth()->user()->hasAnyRole(['administrador', 'super_admin', 'auxiliar'])) {
             abort(403, 'El cierre aún está abierto. Solo se puede imprimir una vez cerrado.');
         }
@@ -74,6 +79,7 @@ class PDFController extends Controller
             'proveedor',
             'pagos',
         ])->findOrFail($id);
+        $this->autorizarComoEnTabla(\App\Filament\Inventario\Resources\CompraResource::class, $compra->id);
         $html = view('pdf.compras', compact('compra'))->render();
         $pdf = Pdf::loadHTML($html)->setPaper([0, 0, 227, 842], 'portrait');
 
@@ -92,6 +98,7 @@ class PDFController extends Controller
             'emisor',
             'receptor',
         ])->findOrFail($id);
+        $this->autorizarComoEnTabla(\App\Filament\Inventario\Resources\TrasladoResource::class, $traslado->id);
         $html = view('pdf.traslado', compact('traslado'))->render();
         $pdf = Pdf::loadHTML($html)->setPaper([0, 0, 227, 842], 'portrait');
 
@@ -103,7 +110,8 @@ class PDFController extends Controller
 
     public function cotizacion($id)
     {
-        $orden = Orden::find($id);
+        $orden = Orden::findOrFail($id);
+        Gate::authorize('view', $orden);
         $html = view('pdf.cotizacion', compact('orden'))->render();
         $pdf = Pdf::loadHTML($html);
 
@@ -115,7 +123,8 @@ class PDFController extends Controller
 
     public function facturaOrden($id)
     {
-        $orden = Orden::find($id);
+        $orden = Orden::findOrFail($id);
+        Gate::authorize('view', $orden);
         $html = view('pdf.facturaOrden', compact('orden'))->render();
         $pdf = Pdf::loadHTML($html);
 
@@ -128,6 +137,7 @@ class PDFController extends Controller
     public function facturaVenta($id)
     {
         $venta = Venta::with('pagos')->findOrFail($id);
+        Gate::authorize('factura', $venta);
 
         $emisor = $venta->bodega_id == 6 ? config('services.fel2')
         : ($venta->bodega_id == 1 ? config('services.fel')
@@ -143,7 +153,8 @@ class PDFController extends Controller
 
     public function notaCreditoOrden($id)
     {
-        $orden = Orden::find($id);
+        $orden = Orden::findOrFail($id);
+        Gate::authorize('view', $orden);
         $html = view('pdf.notaCreditoOrden', compact('orden'))->render();
         $pdf = Pdf::loadHTML($html);
 
@@ -162,6 +173,7 @@ class PDFController extends Controller
             'factura',
             'devolucion',
         ])->findOrFail($id);
+        Gate::authorize('credit_note', $venta);
         $emisor = $venta->bodega_id == 6 ? config('services.fel2')
         : ($venta->bodega_id == 1 ? config('services.fel')
         : ($venta->bodega_id == 8 ? config('services.fel3') : config('services.fel')));
@@ -179,6 +191,7 @@ class PDFController extends Controller
         try {
             return DB::transaction(function () use ($id) {
                 $orden = Orden::findOrFail($id);
+                Gate::authorize('view', $orden);
                 if ($orden->estado->value != 'recolectada') {
                     throw new Exception('La orden ya fue movida');
                 }
@@ -191,6 +204,8 @@ class PDFController extends Controller
                     CURLOPT_POST => true,
                     CURLOPT_POSTFIELDS => $zpl,
                     CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_CONNECTTIMEOUT => 10,
+                    CURLOPT_TIMEOUT => 60,
                     CURLOPT_HTTPHEADER => [
                         'Accept: application/pdf',
                     ],
@@ -240,7 +255,8 @@ class PDFController extends Controller
 
     public function reciboOrden($id)
     {
-        $orden = Orden::find($id);
+        $orden = Orden::findOrFail($id);
+        Gate::authorize('view', $orden);
         $html = view('pdf.reciboOrden', compact('orden'))->render();
         $pdf = Pdf::loadHTML($html);
 

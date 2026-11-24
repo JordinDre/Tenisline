@@ -27,3 +27,6 @@ yarn-error.log
 **/caddy
 frankenphp
 frankenphp-worker.php
+
+# Datos de un MySQL local de Windows (laragon) que se subieron por error
+/mysql-8.4

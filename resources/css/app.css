@@ -65,6 +65,22 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Estilos base que antes ponía daisyUI (se quitó porque ya no se usa); se conservan para que la tienda se vea igual */
+  :root {
+    color-scheme: light;
+    background-color: #ffffff;
+    color: #1f2937;
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  * {
+    scrollbar-color: color-mix(in oklch, currentColor 35%, transparent) transparent;
+  }
+  *:hover {
+    scrollbar-color: color-mix(in oklch, currentColor 60%, transparent) transparent;
+  }
 }
 
 /* Cintas que se desplazan: capa propia en la GPU, sin saltos al reiniciar y con pausa suave al pasar el mouse */
@@ -203,3 +219,12 @@
 
 /* Foto ampliada: fondo oscuro */
 .dark [data-rmiz-modal-overlay='visible'] { background-color: rgb(10 10 10 / 0.95); }
+
+/* Celular: inputs de 16 px para que iOS no haga zoom al tocarlos (en escritorio se ven igual que antes) */
+@media (max-width: 767px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

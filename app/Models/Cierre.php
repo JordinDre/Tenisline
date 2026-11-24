@@ -25,6 +25,18 @@ class Cierre extends Model
 
     protected $guarded = [];
 
+    /**
+     * Memoria por registro de valores calculados que la tabla de cierres pide varias veces por fila
+     * (total, unidades, resumen de pagos, cajas chicas). Filament vuelve a cargar los registros
+     * después de cada acción, así que nunca se muestra un valor viejo.
+     */
+    private array $memo = [];
+
+    private function memo(string $clave, \Closure $calcular): mixed
+    {
+        return array_key_exists($clave, $this->memo) ? $this->memo[$clave] : ($this->memo[$clave] = $calcular());
+    }
+
     public function pagos()
     {
         return $this->morphMany(Pago::class, 'pagable');
@@ -83,8 +95,29 @@ class Cierre extends Model
 
     public function getTotalVentasAttribute()
     {
-        return Venta::with(['detalles.producto'])
-            ->where('bodega_id', $this->bodega_id)
+        return $this->memo('getTotalVentasAttribute', function () {
+            return Venta::with(['detalles.producto'])
+                ->where('bodega_id', $this->bodega_id)
+                ->where(function ($q) {
+                    $q->whereIn('estado', ['creada', 'liquidada'])
+                        ->orWhere(function ($subQ) {
+                            $subQ->where('estado', 'parcialmente_devuelta')
+                                ->whereHas('detalles.producto', fn ($q2) => $q2->where('devuelto', 0));
+                        });
+                })
+                ->where('created_at', '>=', $this->apertura)
+                ->when($this->cierre, fn ($q) => $q->where('created_at', '<=', $this->cierre))
+                ->sum('total');
+        });
+    }
+
+    /**
+     * Subconsulta con el mismo total que getTotalVentasAttribute(), para ordenar la tabla en SQL.
+     */
+    public static function subconsultaTotalVentas(): \Illuminate\Database\Eloquent\Builder
+    {
+        return Venta::selectRaw('COALESCE(SUM(ventas.total), 0)')
+            ->whereColumn('ventas.bodega_id', 'cierres.bodega_id')
             ->where(function ($q) {
                 $q->whereIn('estado', ['creada', 'liquidada'])
                     ->orWhere(function ($subQ) {
@@ -92,31 +125,32 @@ class Cierre extends Model
                             ->whereHas('detalles.producto', fn ($q2) => $q2->where('devuelto', 0));
                     });
             })
-            ->where('created_at', '>=', $this->apertura)
-            ->when($this->cierre, fn ($q) => $q->where('created_at', '<=', $this->cierre))
-            ->sum('total');
+            ->whereColumn('ventas.created_at', '>=', 'cierres.apertura')
+            ->where(fn ($q) => $q->whereNull('cierres.cierre')->orWhereColumn('ventas.created_at', '<=', 'cierres.cierre'));
     }
 
     public function getTotalTenisAttribute()
     {
-        return VentaDetalle::whereHas('venta', function ($query) {
-            $query->where('bodega_id', $this->bodega_id)
-                ->where('created_at', '>=', $this->apertura)
-                ->when($this->cierre, fn ($q) => $q->where('created_at', '<=', $this->cierre))
-                ->where(function ($q) {
-                    $q->whereIn('estado', ['creada', 'liquidada'])
-                        ->orWhere(function ($subQ) {
-                            $subQ->where('estado', 'parcialmente_devuelta');
-                        });
-                });
-        })
-            ->where(function ($detalle) {
-                $detalle->whereHas('venta', function ($q) {
-                    $q->where('estado', '!=', 'parcialmente_devuelta');
-                })
-                    ->orWhere('devuelto', 0);
+        return $this->memo('getTotalTenisAttribute', function () {
+            return VentaDetalle::whereHas('venta', function ($query) {
+                $query->where('bodega_id', $this->bodega_id)
+                    ->where('created_at', '>=', $this->apertura)
+                    ->when($this->cierre, fn ($q) => $q->where('created_at', '<=', $this->cierre))
+                    ->where(function ($q) {
+                        $q->whereIn('estado', ['creada', 'liquidada'])
+                            ->orWhere(function ($subQ) {
+                                $subQ->where('estado', 'parcialmente_devuelta');
+                            });
+                    });
             })
-            ->count('producto_id');
+                ->where(function ($detalle) {
+                    $detalle->whereHas('venta', function ($q) {
+                        $q->where('estado', '!=', 'parcialmente_devuelta');
+                    })
+                        ->orWhere('devuelto', 0);
+                })
+                ->count('producto_id');
+        });
     }
 
     public function getDatosCajaChicaAttribute()
@@ -197,51 +231,53 @@ class Cierre extends Model
 
     public function getResumenPagosAttribute()
     {
-        $ventas = Venta::where('bodega_id', $this->bodega_id)
-            ->where(function ($q) {
-                $q->whereIn('estado', ['creada', 'liquidada'])
-                    ->orWhere(function ($subQ) {
-                        $subQ->where('estado', 'parcialmente_devuelta')
-                            ->whereHas('detalles.producto', fn ($q2) => $q2->where('devuelto', 0));
-                    });
-            })
-            ->where('created_at', '>=', $this->apertura)
-            ->when($this->cierre, fn ($q) => $q->where('created_at', '<=', $this->cierre))
-            ->pluck('id');
+        return $this->memo('getResumenPagosAttribute', function () {
+            $ventas = Venta::where('bodega_id', $this->bodega_id)
+                ->where(function ($q) {
+                    $q->whereIn('estado', ['creada', 'liquidada'])
+                        ->orWhere(function ($subQ) {
+                            $subQ->where('estado', 'parcialmente_devuelta')
+                                ->whereHas('detalles.producto', fn ($q2) => $q2->where('devuelto', 0));
+                        });
+                })
+                ->where('created_at', '>=', $this->apertura)
+                ->when($this->cierre, fn ($q) => $q->where('created_at', '<=', $this->cierre))
+                ->pluck('id');
 
-        $pagos = Pago::whereIn('pagable_id', $ventas)
-            ->where('pagable_type', Venta::class)
-            ->with('tipoPago')
-            ->get();
+            $pagos = Pago::whereIn('pagable_id', $ventas)
+                ->where('pagable_type', Venta::class)
+                ->with('tipoPago')
+                ->get();
 
-        $agrupados = $pagos
-            ->groupBy(fn ($pago) => strtoupper($pago->tipoPago->tipo_pago ?? 'DESCONOCIDO'))
-            ->map(fn ($group) => $group->sum('monto'))
-            ->toArray();
+            $agrupados = $pagos
+                ->groupBy(fn ($pago) => strtoupper($pago->tipoPago->tipo_pago ?? 'DESCONOCIDO'))
+                ->map(fn ($group) => $group->sum('monto'))
+                ->toArray();
 
-        $orden = [
-            'CONTADO',
-            'TARJETA',
-            'CUOTAS',
-            'PAGO CONTRA ENTREGA',
-        ];
+            $orden = [
+                'CONTADO',
+                'TARJETA',
+                'CUOTAS',
+                'PAGO CONTRA ENTREGA',
+            ];
 
-        $resultado = [];
+            $resultado = [];
 
-        foreach ($orden as $tipo) {
-            $monto = $agrupados[$tipo] ?? 0;
-            $resultado[$tipo] = 'Q' . number_format($monto, 2);
-            unset($agrupados[$tipo]);
-        }
+            foreach ($orden as $tipo) {
+                $monto = $agrupados[$tipo] ?? 0;
+                $resultado[$tipo] = 'Q' . number_format($monto, 2);
+                unset($agrupados[$tipo]);
+            }
 
-        foreach ($agrupados as $tipo => $monto) {
-            $resultado[$tipo] = 'Q' . number_format($monto, 2);
-        }
+            foreach ($agrupados as $tipo => $monto) {
+                $resultado[$tipo] = 'Q' . number_format($monto, 2);
+            }
 
-        return collect($resultado)
-            ->map(fn ($monto, $tipo) => "{$tipo}: {$monto}")
-            ->values()
-            ->toArray();
+            return collect($resultado)
+                ->map(fn ($monto, $tipo) => "{$tipo}: {$monto}")
+                ->values()
+                ->toArray();
+        });
     }
 
     protected function resumenPagosLiquidacion(): Attribute
@@ -268,7 +304,17 @@ class Cierre extends Model
     /**
      * Obtiene el resumen de pagos esperados por tipo de pago
      */
+    /** Memoria por registro de getResumenPagosEsperados(): la tabla lo pide varias veces por fila. */
+    private ?array $resumenPagosEsperadosCache = null;
+
     public function getResumenPagosEsperados()
+    {
+        // Solo depende de los pagos de las ventas del cierre (no de los pagos de liquidación que
+        // agregan las acciones), así que se puede reutilizar mientras viva este registro.
+        return $this->resumenPagosEsperadosCache ??= $this->calcularResumenPagosEsperados();
+    }
+
+    private function calcularResumenPagosEsperados(): array
     {
         $ventas = Venta::with(['detalles.producto'])
             ->where('bodega_id', $this->bodega_id)
@@ -387,46 +433,48 @@ class Cierre extends Model
 
     public function getCajasChicasRelacionadasAttribute()
     {
-        $inicioCambio = '2025-10-27';
+        return $this->memo('getCajasChicasRelacionadasAttribute', function () {
+            $inicioCambio = '2025-10-27';
 
-        $apertura = $this->apertura;
-        $cierre   = $this->cierre ?? now();
+            $apertura = $this->apertura;
+            $cierre   = $this->cierre ?? now();
 
-        $creadasEnRango = \App\Models\CajaChica::query()
-            ->with('pagos')
-            ->where('bodega_id', $this->bodega_id)
-            ->whereDate('created_at', '>=', $inicioCambio)              
-            ->whereBetween('created_at', [$apertura, $cierre])
-            ->whereIn('estado', ['creada', 'confirmada'])
-            ->get();
+            $creadasEnRango = \App\Models\CajaChica::query()
+                ->with('pagos')
+                ->where('bodega_id', $this->bodega_id)
+                ->whereDate('created_at', '>=', $inicioCambio)              
+                ->whereBetween('created_at', [$apertura, $cierre])
+                ->whereIn('estado', ['creada', 'confirmada'])
+                ->get();
 
-        $aplicadasEnEste = \App\Models\CajaChica::query()
-            ->with('pagos')
-            ->where('bodega_id', $this->bodega_id)
-            ->where('aplicado_en_cierre_id', $this->id)
-            ->get();
+            $aplicadasEnEste = \App\Models\CajaChica::query()
+                ->with('pagos')
+                ->where('bodega_id', $this->bodega_id)
+                ->where('aplicado_en_cierre_id', $this->id)
+                ->get();
 
-        $cajas = $creadasEnRango->merge($aplicadasEnEste)
-            ->unique('id')
-            ->sortBy('created_at');
+            $cajas = $creadasEnRango->merge($aplicadasEnEste)
+                ->unique('id')
+                ->sortBy('created_at');
 
-        return $cajas->map(function ($caja) {
-            $estadoLabel = match ($caja->estado) {
-                'confirmada' => 'Confirmada',
-                'creada'     => 'Pendiente',
-                'anulada'    => 'Anulada',
-                default      => ucfirst($caja->estado),
-            };
+            return $cajas->map(function ($caja) {
+                $estadoLabel = match ($caja->estado) {
+                    'confirmada' => 'Confirmada',
+                    'creada'     => 'Pendiente',
+                    'anulada'    => 'Anulada',
+                    default      => ucfirst($caja->estado),
+                };
 
-            if ($caja->aplicado && $caja->aplicado_en_cierre_id) {
-                $estadoLabel = $caja->aplicado_en_cierre_id === $this->id
-                    ? 'Aplicada en este cierre'
-                    : "Aplicada en cierre #{$caja->aplicado_en_cierre_id}";
-            }
+                if ($caja->aplicado && $caja->aplicado_en_cierre_id) {
+                    $estadoLabel = $caja->aplicado_en_cierre_id === $this->id
+                        ? 'Aplicada en este cierre'
+                        : "Aplicada en cierre #{$caja->aplicado_en_cierre_id}";
+                }
 
-            $monto = $caja->pagos->sum('monto');
+                $monto = $caja->pagos->sum('monto');
 
-            return "{$caja->detalle_gasto} (Q" . number_format($monto, 2) . ") - {$estadoLabel}";
-        })->values()->toArray();
+                return "{$caja->detalle_gasto} (Q" . number_format($monto, 2) . ") - {$estadoLabel}";
+            })->values()->toArray();
+        });
     }
 }

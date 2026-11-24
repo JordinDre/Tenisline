@@ -86,14 +86,16 @@ class CaidosResource extends Resource
             }
         }
 
-        return $query
-            ->orderByRaw('CASE WHEN s.primer_seguimiento IS NULL THEN 0 ELSE 1 END')
-            ->orderByRaw('CASE WHEN s.primer_seguimiento IS NULL THEN ventas.created_at ELSE s.primer_seguimiento END');
+        return $query;
     }
 
     public static function table(Table $table): Table
     {
         return $table
+            // Orden por defecto aquí (no en getEloquentQuery) para que el orden por columna funcione
+            ->defaultSort(fn (Builder $query) => $query
+                ->orderByRaw('CASE WHEN s.primer_seguimiento IS NULL THEN 0 ELSE 1 END')
+                ->orderByRaw('CASE WHEN s.primer_seguimiento IS NULL THEN ventas.created_at ELSE s.primer_seguimiento END'))
             ->columns([
                 Tables\Columns\TextColumn::make('cliente.id')
                     ->label('Cliente ID')

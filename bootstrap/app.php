@@ -18,7 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
+            'personal' => \App\Http\Middleware\SoloPersonal::class,
+            'guatex.token' => \App\Http\Middleware\TokenWebhookGuatex::class,
         ]);
+
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
 
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,

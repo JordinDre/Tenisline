@@ -148,6 +148,8 @@ class TrasladoResource extends Resource implements HasShieldPermissions
     public static function table(Table $table): Table
     {
         return $table
+            // Orden por defecto aquí (no en getEloquentQuery) para que el orden por columna funcione
+            ->defaultSort('created_at', 'desc')
             ->extremePaginationLinks()
             ->paginated([10, 25, 50])
             ->columns([
@@ -171,7 +173,12 @@ class TrasladoResource extends Resource implements HasShieldPermissions
                 Tables\Columns\TextColumn::make('total_pares')
                     ->label('Total Pares')
                     ->getStateUsing(fn (Traslado $record) => $record->detalles->sum('cantidad_enviada'))
-                    ->sortable()
+                    // Misma suma que se muestra, calculada en SQL (antes daba error: no es columna)
+                    ->sortable(query: fn (Builder $query, string $direction) => $query->orderBy(
+                        \App\Models\TrasladoDetalle::selectRaw('COALESCE(SUM(cantidad_enviada), 0)')
+                            ->whereColumn('traslado_detalles.traslado_id', 'traslados.id'),
+                        $direction
+                    ))
                     ->numeric(),
                 Tables\Columns\TextColumn::make('estado')
                     ->label('Estado')
@@ -198,7 +205,7 @@ class TrasladoResource extends Resource implements HasShieldPermissions
                     ->label('Eliminado')
                     ->dateTime('d/m/Y H:i:s')
                     ->copyable()
-                    ->sortable()
+                    // Sin orden: la tabla traslados no tiene la columna deleted_at (ordenar daba error)
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Creado')
@@ -298,8 +305,7 @@ class TrasladoResource extends Resource implements HasShieldPermissions
         $user = \Filament\Facades\Filament::auth()->user();
 
         $query = parent::getEloquentQuery()
-            ->with(['entrada', 'salida', 'emisor', 'receptor', 'piloto'])
-            ->orderByDesc('created_at');
+            ->with(['entrada', 'salida', 'emisor', 'receptor', 'piloto']);
 
         if ($user->hasAnyRole(['administrador', 'super_admin'])) {
             return $query;
