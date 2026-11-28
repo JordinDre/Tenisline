@@ -19,6 +19,7 @@ use App\Enums\EstadoVentaStatus;
 use Filament\Resources\Resource;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Intervention\Image\ImageManagerStatic as InterventionImage;
 use Filament\Forms\Components\Grid;
 use Filament\Tables\Actions\Action;
@@ -45,6 +46,7 @@ use Filament\Tables\Enums\FiltersLayout;
 use App\Http\Controllers\VentaController;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\ViewField;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use App\Http\Controllers\GUATEXController;
@@ -634,27 +636,13 @@ class VentaResource extends Resource implements HasShieldPermissions
                             Placeholder::make('instrucciones')
                                 ->label('')
                                 ->content('Debes permitir el acceso a la cámara y a tu ubicación. La foto debe tomarse en este momento, no se permite seleccionar desde la galería.'),
-                            FileUpload::make('foto_evidencia')
+                            // Cámara en vivo dentro de la página: no hay selector de archivos,
+                            // así no se puede subir una foto de la galería ni una reenviada.
+                            ViewField::make('foto_evidencia')
                                 ->label('Foto de evidencia')
+                                ->view('filament.forms.camara-evidencia')
                                 ->required()
-                                ->image()
-                                // 'android/allowCamera' hace que Chrome en Android 14+ muestre la opción de cámara.
-                                ->acceptedFileTypes(['image/*', 'android/allowCamera'])
-                                ->disk(config('filesystems.disks.s3.driver'))
-                                ->directory(config('filesystems.upload_directory'))
-                                ->visibility('public')
-                                ->extraInputAttributes([
-                                    'capture' => 'environment',
-                                    'accept' => 'image/*',
-                                ])
-                                // Redimensiona en el navegador ANTES de subir, para que una foto de
-                                // cámara de celular (que puede pesar varios MB) no choque con maxSize.
-                                ->imageResizeMode('contain')
-                                ->imageResizeTargetWidth('1600')
-                                ->imageResizeTargetHeight('1600')
-                                ->imageResizeUpscale(false)
-                                ->maxSize(8000)
-                                ->optimize('webp'),
+                                ->validationMessages(['required' => 'Toma la foto con la cámara.']),
                             Grid::make(1)
                                 ->extraAttributes(['x-data' => '{}'])
                                 ->schema([
@@ -683,7 +671,19 @@ class VentaResource extends Resource implements HasShieldPermissions
                         ])
                         ->modalSubmitActionLabel('Guardar foto')
                         ->action(function ($record, array $data) {
-                            $record->foto_evidencia_oferta20 = $data['foto_evidencia'];
+                            $ruta = static::guardarFotoCamara((string) $data['foto_evidencia']);
+
+                            if (! $ruta) {
+                                Notification::make()
+                                    ->title('Foto no válida')
+                                    ->body('Vuelve a tomar la foto con la cámara.')
+                                    ->danger()
+                                    ->send();
+
+                                return;
+                            }
+
+                            $record->foto_evidencia_oferta20 = $ruta;
                             $record->foto_evidencia_lat = $data['lat'] ?: null;
                             $record->foto_evidencia_lng = $data['lng'] ?: null;
                             $record->foto_evidencia_capturada_en = now();
@@ -1506,6 +1506,31 @@ class VentaResource extends Resource implements HasShieldPermissions
      * píxeles de la foto de evidencia, para que el dato viaje con la imagen
      * aunque se descargue por separado.
      */
+    /**
+     * Guarda la foto tomada con la cámara en vivo (data URL JPEG generado en el navegador).
+     * Devuelve la ruta en el disco o null si el contenido no es una imagen válida.
+     */
+    protected static function guardarFotoCamara(string $dataUrl): ?string
+    {
+        if (! preg_match('#^data:image/jpeg;base64,(.+)$#s', $dataUrl, $m)) {
+            return null;
+        }
+
+        $binario = base64_decode($m[1], true);
+
+        if ($binario === false || strlen($binario) > 8 * 1024 * 1024
+            || (new \finfo(FILEINFO_MIME_TYPE))->buffer($binario) !== 'image/jpeg') {
+            return null;
+        }
+
+        $ruta = trim((string) config('filesystems.upload_directory'), '/').'/'.Str::uuid().'.jpg';
+        $ruta = ltrim($ruta, '/');
+
+        Storage::disk(config('filesystems.disks.s3.driver'))->put($ruta, $binario, 'public');
+
+        return $ruta;
+    }
+
     protected static function estamparEvidenciaEnFoto(Venta $record): void
     {
         if (! $record->foto_evidencia_oferta20) {
